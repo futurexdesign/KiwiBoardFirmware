@@ -31,10 +31,10 @@ U8G2_SH1107_128X128_2_HW_I2C gfx(U8G2_R0, U8X8_PIN_NONE, OLED_SCL, OLED_SDA);
 void setup() {
 
     platform = new PicoPlatform();
-    platform->init_platform();
+    platform->initializePlatform();
 
     motorControl = new MotorControl();
-    motorControl->init_tmc(platform);
+    motorControl->initMotionController(platform);
 
     setupMenu();
     menuMgr.load(0xfade, NULL);
@@ -75,6 +75,27 @@ void loop() {
  */
 void ui_tick() {
 
+    // Update the remaining time...
+    if (motorControl->isRunning()) {
+        unsigned long secRemaining = motorControl->getSecondsRemaining();
+
+        int minutes = secRemaining / 60;
+        int secRemand = secRemaining % 60;
+
+        struct TimeStorage ts = menuRunTime.getTime();
+        ts.seconds = secRemand;
+        ts.minutes = minutes;
+        menuRunTime.setTime(ts);
+        menuRunTime.changeOccurred(true);
+    } else {
+        struct TimeStorage ts = menuRunTime.getTime();
+        if (ts.seconds != 0) {
+            ts.seconds = 0;
+            ts.minutes = 0;
+            menuRunTime.setTime(ts);
+            menuRunTime.changeOccurred(true);
+        }
+    }
 }
 
 void CALLBACK_FUNCTION progChange(int id) {
@@ -87,15 +108,27 @@ void CALLBACK_FUNCTION progChange(int id) {
  * If we are running, force a stop of the current program 
  * If we are stopped, trigger a start of the selected program
 */
-void CALLBACK_FUNCTION run(int id);
+void CALLBACK_FUNCTION run(int id) {
 
-void run(int id) {
-
+    if (motorControl->isRunning()){
+        motorControl->stopMotion();
+    } else {
+        motorControl->startProgram(menuProgram.getCurrentValue(), getSettings());
+    }
 }
-
 
 void CALLBACK_FUNCTION settings_changed(int id) {
 
     settingsChanged = true;
 
+}
+/**
+ * Commit settings to eeprom if they have changed
+ */
+void commit_if_needed() {
+    if (settingsChanged)
+    {
+        EEPROM.commit();
+        settingsChanged = false;
+    }
 }

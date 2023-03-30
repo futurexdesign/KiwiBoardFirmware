@@ -5,12 +5,12 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
-void MotorControl::init_tmc(PicoPlatform* curPlatform)
+void MotorControl::initMotionController(PicoPlatform* curPlatform)
 {
     this->platform = curPlatform; // Set the current platform.
 
     // start by disabling motor controller. 
-    platform->motor_enable(false);
+    platform->enableMotor(false);
 
     TMC5160::PowerStageParameters powerStageParams; // defaults.
     TMC5160::MotorParameters motorParams;
@@ -37,7 +37,7 @@ void MotorControl::init_tmc(PicoPlatform* curPlatform)
  * @param programId
  * @param currentSettings
  */
-void MotorControl::start_program(int programId, SETTINGS currentSettings) {
+void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
     // A start has been requested
     state.program = programId;
@@ -48,12 +48,15 @@ void MotorControl::start_program(int programId, SETTINGS currentSettings) {
         state.run_end = state.run_start + (currentSettings.wash_duration * 60000);
         state.isRunning = true;
 
+        //TODO Need to work out RPM to speed when calling the TMC driver.
+        //TODO originally had cycle time configurable for wash, switch config option to number of rotations.
+
         // Initial prototype had agitate happening in velocity mode, which
         // has some downsides on the acceleration curves, and creates a floor on
         // how fast the cycle time can be (need enough time for it to actually accel/decel
         // should probably just switch back to positioning mode.
 
-        platform->motor_enable(true);
+        platform->enableMotor(true);
 
         // ramp definition
         motor->setRampMode(TMC5160::POSITIONING_MODE);
@@ -65,12 +68,12 @@ void MotorControl::start_program(int programId, SETTINGS currentSettings) {
         state.direction = true;
 
     } else if (programId == 1) {
-        // spin off..
+        // spin-off..
         state.run_end = state.run_start + (currentSettings.spin_duration * 60000);
         state.isRunning = true;
 
         // Enable drive, active low
-        platform->motor_enable(true);
+        platform->enableMotor(true);
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
@@ -80,16 +83,16 @@ void MotorControl::start_program(int programId, SETTINGS currentSettings) {
         state.direction = true;
 
     } else {
-        // dry .. which is basically a spin off with heat
-        // spin off..
+        // dry... which is basically a spin-off with heat
+        // spin-off..
         state.run_end = state.run_start + (currentSettings.dry_duration * 60000);
         state.isRunning = true;
 
         // Enable drive, active low
-        platform->motor_enable(true);
+        platform->enableMotor(true);
 
         // Enable heat and fan
-        platform->heater_enable(true);
+        platform->enableHeater(true);
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
@@ -109,13 +112,33 @@ void MotorControl::exec() {
         return;
     }
 
+    // Check to see if we are stopping
+    if (state.isStopping) {
+        // Check to see if motion terminated, so we can disable the motion controller.
+        if (motor->getCurrentSpeed() == 0) {
+            state.isRunning = false;
+            state.isStopping = false;
+
+            platform->enableMotor(false);
+        } else {
+            // Give it 10 10 ticks to finish before stopping it manually
+            if (state.stopping_cnt == 10 ) {
+                platform->enableMotor(false);
+                state.isStopping = false;
+                state.isRunning = false;
+            } else {
+                state.stopping_cnt++;
+            }
+        }
+    }
+
     // If past end time...
     if (millis() >= state.run_end) {
         motor->setMaxSpeed(0);
-        platform->motor_enable(false);
+        platform->enableMotor(false);
         if (state.program == 2) {
             // If we finished a dry cycle, trigger cooldown
-            platform->start_cooldown();
+            platform->startCooldown();
         }
         state.isRunning = false;
     } else if (state.program == 0) {
@@ -128,22 +151,37 @@ void MotorControl::exec() {
     }
 }
 
-int MotorControl::get_running_program() {
+int MotorControl::getRunningProgram() {
     return state.program;
 }
 
-bool MotorControl::is_running() {
+bool MotorControl::isRunning() {
     return state.isRunning;
 }
 
-void MotorControl::stop_motion() {
+void MotorControl::stopMotion() {
 
-    motor->setMaxSpeed(0);
-    platform->motor_enable(false);
-    // TODO.. we may need a delay between setting the speed to zero and disabling the motor en line
-    // this may cause the motion to end too quickly, rather than using a decel ramp.
-    // We likely just need a second timer that can identify that we stopped, and then disable the motors afterwards
+    if (state.isRunning) {
+        if (getRunningProgram() != 0) {
+            // if we are in a wash cycle... let the current motion finish, otherwise, set speed to zero
+            // and let the motion controller ramp down.
+            motor->setMaxSpeed(0);
+        }
 
+        state.isStopping = true;
+        state.stopping_cnt = 0;
+    }
+
+}
+
+unsigned long MotorControl::getSecondsRemaining() {
+
+    unsigned long rtn = 0;
+    if (state.isRunning) {
+        rtn = (state.run_end - millis()) / 1000;
+    }
+
+    return rtn;
 
 }
 

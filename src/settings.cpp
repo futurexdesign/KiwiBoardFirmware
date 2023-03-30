@@ -22,19 +22,3 @@ SETTINGS getSettings() {
     return rtn;
 }
 
-void commit_if_needed() {
-//    if (settingsChanged)
-//    {
-//        Serial.println("Commit settings to Flash");
-//        EEPROM.commit();
-//        settingsChanged = false;
-//
-//        BaseDialog *dlg = renderer.getDialog();
-//        if (dlg)
-//        {
-//            dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
-//            dlg->show(allSavedPgm, false); // false = shows only on device
-//            dlg->copyIntoBuffer("Committed to FLASH");
-//        }
-//    }
-}

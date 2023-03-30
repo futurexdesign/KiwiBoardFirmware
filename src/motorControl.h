@@ -17,15 +17,16 @@ class MotorControl : public Executable
         /**
          * Initialize the TMC5160 motion controller running on the provided platform.
          */
-        void init_tmc(PicoPlatform*);
+        void initMotionController(PicoPlatform *curPlatform);
 
-        void stop_motion();
-        void start_program(int programId, SETTINGS currentSettings);
+        void stopMotion();
+        void startProgram(int programId, SETTINGS currentSettings);
 
         /**
-         * Return the amount of time remaining in the current program (in ms)
+         * Return the number of seconds remaining in the current program.
+         * This will be end time - current millis
          */
-        int get_remaning_time();
+        unsigned long getSecondsRemaining();
 
         /**
          * Return the currently executing program (if any).  If no program is running, return -1.
@@ -33,9 +34,13 @@ class MotorControl : public Executable
          * 1 -> spin
          * 2 -> dry
          */
-        int get_running_program();
+        int getRunningProgram();
 
-        bool is_running();
+        /**
+         * Is there currently a cycle running?
+         * @return True if a cycle is active
+         */
+        bool isRunning();
 
 
         /**
@@ -47,13 +52,14 @@ class MotorControl : public Executable
         struct MOTOR_STATE
         {
             bool isRunning = false;
-            bool startRequired = false;
-            bool stopRequired = false;
+            bool isStopping = false;
             int program;    // 0 = agitate; 1 = spin; 2 = dry
             bool direction; // false = CW ; true = CCW
+            unsigned int stopping_cnt = 0;
+
             int rpm;
             unsigned long run_start;    // when did the program phase start
-            unsigned long run_end; // How long should this step be, when we excede this, do next aciton.
+            unsigned long run_end; // How long should this step be, when we exceed this, do next action.
         };
 
     private:

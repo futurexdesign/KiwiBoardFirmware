@@ -30,27 +30,27 @@ class PicoPlatform : public Executable {
         /**
          * Initialize all IO on the Pico to the correct pins
         */
-        void init_platform();
+        void initializePlatform();
 
 
         /**
          * Enable or disable the heater output based on provided value.
          * The heater is enabled on logic HIGH.
         */
-        void heater_enable(bool activate);
+        void enableHeater(bool activate);
 
         /**
          * Enable or disable the fan output based on provided value.
          * The fan should always run if the heater is enabled.
          * The fan is enabled on logic HIGH.
         */
-        void fan_enable(bool activate);
+        void enableFan(bool activate);
 
         /**
          * Enable or disable the stepper motor controller.  This is attached directly
          * to the EN pin of the stepper board.  This is active LOW.
         */
-        void motor_enable(bool activate);
+        void enableMotor(bool activate);
 
         /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
@@ -58,7 +58,7 @@ class PicoPlatform : public Executable {
          * Look at the current configuration, if cooldown is enabled, calculate cooldown end, and start time
          * If cooldown is disabled, just shut the fan off.
          */
-        void start_cooldown();
+        void startCooldown();
 
         /**
          * To be called by task loop.  This is charged with updating any state changes necessary with the
@@ -69,9 +69,9 @@ class PicoPlatform : public Executable {
          */
         void exec() override;
 
-        bool is_motor_enabled();
-        bool is_heater_enabled();
-        bool is_fan_enabled();
+        bool isMotorEnabled();
+        bool isHeaterEnabled();
+        bool isFanEnabled();
 
     private:
         bool in_cooldown = false;

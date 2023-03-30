@@ -11,7 +11,7 @@
 /**
  * Initialize all IO on the Pico to the correct pins 
 */
-void PicoPlatform::init_platform() {
+void PicoPlatform::initializePlatform() {
 
     // Set input pins.
     pinMode(ENC1, INPUT);
@@ -50,7 +50,7 @@ void PicoPlatform::init_platform() {
  * Enable or disable the heater output based on provided value. 
  * The heater is enabled on logic HIGH.
 */
-void PicoPlatform::heater_enable(bool activate) {
+void PicoPlatform::enableHeater(bool activate) {
 
     digitalWrite(HEATER_CTL, activate);
     heater_enabled = true;
@@ -58,7 +58,7 @@ void PicoPlatform::heater_enable(bool activate) {
     // If heater has been turned on, the fan MUST turn on.  
     // If we are turning the heater off, the cooldown logic will turn off the fan 
     if (activate) {
-        fan_enable(true);
+        enableFan(true);
     }
 }
 
@@ -67,7 +67,7 @@ void PicoPlatform::heater_enable(bool activate) {
  * The fan should always run if the heater is enabled. 
  * The fan is enabled on logic HIGH.
 */
-void PicoPlatform::fan_enable(bool activate) {
+void PicoPlatform::enableFan(bool activate) {
 
     digitalWrite(FAN_CTL, activate);
     fan_enabled = activate;
@@ -78,20 +78,20 @@ void PicoPlatform::fan_enable(bool activate) {
  * Enable or disable the stepper motor controller.  This is attached directly 
  * to the EN pin of the stepper board.  This is active LOW.  
 */
-void PicoPlatform::motor_enable(bool activate) {
+void PicoPlatform::enableMotor(bool activate) {
     digitalWrite(MOTOR_EN, !activate); // active low
     motor_enabled = activate;
 }
 
-bool PicoPlatform::is_fan_enabled() {
+bool PicoPlatform::isFanEnabled() {
     return fan_enabled;
 }
 
-bool PicoPlatform::is_heater_enabled() {
+bool PicoPlatform::isHeaterEnabled() {
     return heater_enabled;
 }
 
-bool PicoPlatform::is_motor_enabled() {
+bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
 }
 
@@ -100,22 +100,22 @@ void PicoPlatform::exec() {
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
         // This honestly should never happen...
-        fan_enable(true);
+        enableFan(true);
     }
 
     if (in_cooldown) {
         if (millis() >= cooldown_end) {
-            fan_enable(false);
+            enableFan(false);
         }
     }
 }
 
-void PicoPlatform::start_cooldown() {
+void PicoPlatform::startCooldown() {
 
     SETTINGS settings = getSettings();
 
     // turn off the heat
-    heater_enable(false);
+    enableHeater(false);
 
     if (settings.fanCooldown) {
         // cooldown enabled, calculate the fan end time, mark start time.  ::tick will handle turning fan off
@@ -125,6 +125,6 @@ void PicoPlatform::start_cooldown() {
 
     } else {
         // shut off fan
-        fan_enable(false);
+        enableFan(false);
     }
 }
