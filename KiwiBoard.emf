@@ -1,0 +1,436 @@
+{
+  "version": "1.00",
+  "projectName": "KiwiBoard",
+  "author": "2p3ca",
+  "items": [
+    {
+      "parentId": 0,
+      "type": "enumItem",
+      "defaultValue": "0",
+      "item": {
+        "enumEntries": [
+          "Agitate",
+          "Spin",
+          "Dry"
+        ],
+        "name": "Program",
+        "variableName": "Program",
+        "id": 1,
+        "eepromAddress": 6,
+        "functionName": "@progChange",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 0,
+      "type": "actionMenu",
+      "item": {
+        "name": "Run - Stop",
+        "id": 2,
+        "eepromAddress": -1,
+        "functionName": "@run",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": true
+      }
+    },
+    {
+      "parentId": 0,
+      "type": "textItem",
+      "defaultValue": "",
+      "item": {
+        "textLength": 0,
+        "itemType": "TIME_DURATION_SECONDS",
+        "name": "RunTime",
+        "id": 6,
+        "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 0,
+      "type": "subMenu",
+      "item": {
+        "secured": false,
+        "name": "Settings",
+        "variableName": "Settings",
+        "id": 7,
+        "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 7,
+      "type": "subMenu",
+      "item": {
+        "secured": false,
+        "name": "Wash Settings",
+        "variableName": "washSettings",
+        "id": 8,
+        "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 8,
+      "type": "analogItem",
+      "defaultValue": "4",
+      "item": {
+        "maxValue": 9,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "min",
+        "step": 1,
+        "name": "Total Duration",
+        "variableName": "wash_duration",
+        "id": 9,
+        "eepromAddress": 4,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 8,
+      "type": "analogItem",
+      "defaultValue": "2",
+      "item": {
+        "maxValue": 59,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "sec",
+        "step": 1,
+        "name": "Cycle Time",
+        "variableName": "wash_cycle_time",
+        "id": 10,
+        "eepromAddress": 8,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 8,
+      "type": "analogItem",
+      "defaultValue": "20",
+      "item": {
+        "maxValue": 100,
+        "offset": 50,
+        "divisor": 1,
+        "unitName": "rpm",
+        "step": 5,
+        "name": "Target Speed",
+        "variableName": "wash_speed",
+        "id": 11,
+        "eepromAddress": 10,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 7,
+      "type": "subMenu",
+      "item": {
+        "secured": false,
+        "name": "Spin Settings",
+        "variableName": "SpinSettings",
+        "id": 12,
+        "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 12,
+      "type": "analogItem",
+      "defaultValue": "0",
+      "item": {
+        "maxValue": 10,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "min",
+        "step": 1,
+        "name": "Total Duration",
+        "variableName": "spin_duration",
+        "id": 13,
+        "eepromAddress": 12,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 12,
+      "type": "analogItem",
+      "defaultValue": "20",
+      "item": {
+        "maxValue": 100,
+        "offset": 50,
+        "divisor": 1,
+        "unitName": "rpm",
+        "step": 5,
+        "name": "Target Speed",
+        "variableName": "spin_speed",
+        "id": 14,
+        "eepromAddress": 14,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 7,
+      "type": "subMenu",
+      "item": {
+        "secured": false,
+        "name": "DrySettings",
+        "variableName": "DrySettings",
+        "id": 15,
+        "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 15,
+      "type": "analogItem",
+      "defaultValue": "4",
+      "item": {
+        "maxValue": 10,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "min",
+        "step": 1,
+        "name": "Total Duration",
+        "variableName": "dry_duration",
+        "id": 16,
+        "eepromAddress": 16,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 15,
+      "type": "analogItem",
+      "defaultValue": "20",
+      "item": {
+        "maxValue": 100,
+        "offset": 50,
+        "divisor": 1,
+        "unitName": "rpm",
+        "step": 5,
+        "name": "Target Speed",
+        "variableName": "dry_speed",
+        "id": 17,
+        "eepromAddress": 18,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 15,
+      "type": "boolItem",
+      "defaultValue": "true",
+      "item": {
+        "naming": "ON_OFF",
+        "name": "Fan Cooldown",
+        "variableName": "fanCooldown",
+        "id": 18,
+        "eepromAddress": 20,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 15,
+      "type": "analogItem",
+      "defaultValue": "1",
+      "item": {
+        "maxValue": 9,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "min",
+        "step": 1,
+        "name": "Cooldown Time",
+        "variableName": "cooldownTime",
+        "id": 19,
+        "eepromAddress": 21,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    }
+  ],
+  "codeOptions": {
+    "embeddedPlatform": "ARDUINO32",
+    "lastDisplayUuid": "8646497b-1427-415f-8020-1260a1fef57d",
+    "lastInputUuid": "6dd87e7d-e751-4912-a70d-91793b1d3d87",
+    "lastRemoteUuid": "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb",
+    "lastRemoteUuids": [
+      "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb"
+    ],
+    "lastThemeUuid": "815316bb-76c9-436a-8f83-be0bced963df",
+    "applicationUUID": "a44877f0-b65e-4c52-9701-aefa48df02b9",
+    "applicationName": "KiwiBoard",
+    "lastProperties": [
+      {
+        "name": "DISPLAY_VARIABLE",
+        "latestValue": "gfx",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "DISPLAY_TYPE",
+        "latestValue": "U8G2_SH1107_128X128_2_HW_I2C",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "DISPLAY_CONFIG",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "UPDATES_PER_SEC",
+        "latestValue": "10",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "YIELDING_WIRE_CB",
+        "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "USE_UTF8_SUPPORT",
+        "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "SW_POLLING_MODE",
+        "latestValue": "SWITCHES_POLL_EVERYTHING",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "SWITCH_IODEVICE",
+        "latestValue": "devicePins",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ENCODER_PIN_A",
+        "latestValue": "ENC1",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ENCODER_PIN_B",
+        "latestValue": "ENC2",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ENCODER_PIN_OK",
+        "latestValue": "BUTTON",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ENCODER_BACK_PIN",
+        "latestValue": "-1",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ENCODER_NEXT_PIN",
+        "latestValue": "-1",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "PULLUP_LOGIC",
+        "latestValue": "true",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ENCODER_IS_QUARTER_CYCLE",
+        "latestValue": "false",
+        "subsystem": "INPUT"
+      },
+      {
+        "name": "ITEM_FONT",
+        "latestValue": "def:,1",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "TITLE_FONT",
+        "latestValue": "def:,1",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "TITLE_BORDER_WIDTH",
+        "latestValue": "1",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "TITLE_TO_ITEM_SPACING",
+        "latestValue": "2",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "TITLE_SHOW_MODE",
+        "latestValue": "TITLE_FIRST_ROW",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "USE_TC_UNICODE",
+        "latestValue": "false",
+        "subsystem": "THEME"
+      }
+    ],
+    "namingRecursive": false,
+    "saveToSrc": true,
+    "useCppMain": true,
+    "usingSizedEEPROMStorage": true,
+    "eepromDefinition": "eeprom:",
+    "authenticatorDefinition": "",
+    "projectIoExpanders": [
+      "deviceIO:"
+    ],
+    "menuInMenuCollection": {
+      "menuDefinitions": []
+    },
+    "packageNamespace": "",
+    "appIsModular": false
+  }
+}
