@@ -20,7 +20,7 @@ void MotorControl::initMotionController(PicoPlatform* curPlatform)
 
     // TODO Setup any stealth-chop settings we may want changed from defaults. 
 
-    motor = new TMC5160_SPI(TMC_SS);
+    motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
 
     motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
     motor->stop(); // Ensure the controller is initialized with the motor stopped
@@ -61,6 +61,8 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         // ramp definition
         motor->setRampMode(TMC5160::POSITIONING_MODE);
         motor->setMaxSpeed(400);
+        // REgister for VMAX is expressed in uSteps / t
+        // t is 1.398101 at 12mhz
         motor->setAcceleration(1000);
 
         // Make two rotations

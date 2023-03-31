@@ -308,7 +308,7 @@
     "lastRemoteUuids": [
       "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb"
     ],
-    "lastThemeUuid": "815316bb-76c9-436a-8f83-be0bced963df",
+    "lastThemeUuid": "0dd60ceb-7e0f-46e2-8d40-b264eb3aa7e0",
     "applicationUUID": "a44877f0-b65e-4c52-9701-aefa48df02b9",
     "applicationName": "KiwiBoard",
     "lastProperties": [
@@ -319,7 +319,7 @@
       },
       {
         "name": "DISPLAY_TYPE",
-        "latestValue": "U8G2_SH1107_128X128_2_HW_I2C",
+        "latestValue": "U8G2_SH1107_128X128_F_HW_I2C",
         "subsystem": "DISPLAY"
       },
       {
@@ -394,12 +394,12 @@
       },
       {
         "name": "TITLE_FONT",
-        "latestValue": "def:,1",
+        "latestValue": "avl:u8g2_font_luRS10_tr,1",
         "subsystem": "THEME"
       },
       {
-        "name": "TITLE_BORDER_WIDTH",
-        "latestValue": "1",
+        "name": "TITLE_HEADER_PADDING",
+        "latestValue": "2",
         "subsystem": "THEME"
       },
       {
@@ -409,7 +409,7 @@
       },
       {
         "name": "TITLE_SHOW_MODE",
-        "latestValue": "TITLE_FIRST_ROW",
+        "latestValue": "TITLE_ALWAYS",
         "subsystem": "THEME"
       },
       {

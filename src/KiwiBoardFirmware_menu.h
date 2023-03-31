@@ -20,10 +20,10 @@
 #include <ArduinoEEPROMAbstraction.h>
 #include "picoPlatform.h"
 
-
 // variables we declare that you may need to access
 extern const PROGMEM ConnectorLocalInfo applicationInfo;
-extern U8G2_SH1107_128X128_2_HW_I2C gfx;
+//extern U8G2_SH1107_128X128_F_HW_I2C gfx;
+extern U8G2_SH1107_PIMORONI_128X128_F_HW_I2C gfx;
 extern GraphicsDeviceRenderer renderer;
 
 // Any externals needed by IO expanders, EEPROMs etc

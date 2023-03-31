@@ -10,7 +10,7 @@
 
 #include <tcMenu.h>
 #include "KiwiBoardFirmware_menu.h"
-#include "ThemeMonoBordered.h"
+#include "ThemeMonoInverse.h"
 
 // Global variable declarations
 const  ConnectorLocalInfo applicationInfo = { "KiwiBoard", "a44877f0-b65e-4c52-9701-aefa48df02b9" };
@@ -73,8 +73,8 @@ void setupMenu() {
     renderer.setUpdatesPerSecond(10);
     switches.init(internalDigitalIo(), SWITCHES_POLL_EVERYTHING, true);
     menuMgr.initForEncoder(&renderer, &menuProgram, ENC1, ENC2, BUTTON);
-    renderer.setTitleMode(BaseGraphicalRenderer::TITLE_FIRST_ROW);
+    renderer.setTitleMode(BaseGraphicalRenderer::TITLE_ALWAYS);
     renderer.setUseSliderForAnalog(false);
-    installMonoBorderedTheme(renderer, MenuFontDef(nullptr, 1), MenuFontDef(nullptr, 1), true);
+    installMonoInverseTitleTheme(renderer, MenuFontDef(nullptr, 1), MenuFontDef(u8g2_font_luRS10_tr, 1), true);
 }
 

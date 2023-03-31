@@ -29,19 +29,26 @@ void PicoPlatform::initializePlatform() {
     digitalWrite(FAN_CTL, LOW);
 
     // Remap  IO to the correct pins for i2c0
-    Wire.setSDA(OLED_SDA);
-    Wire.setSCL(OLED_SCL);
+    // Turn on the LED
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
 
-    Wire.begin();
+//    pinMode(OLED_SDA, OUTPUT);
+//    pinMode(OLED_SCL, OUTPUT);
+    // Wire.setSDA(OLED_SDA);
+    // Wire.setSCL(OLED_SCL);
+
+    // Wire.begin();
+    
 
     // Remap IO to the correct pins for hardware SPI 0 
-    SPI.setRX(TMC_MISO);
-    SPI.setTX(TMC_MOSI);
-    SPI.setSCK(TMC_SCLK);
-    SPI.setCS(TMC_SS);
+    SPI1.setRX(TMC_MISO);
+    SPI1.setTX(TMC_MOSI);
+    SPI1.setSCK(TMC_SCLK);
+    SPI1.setCS(TMC_SS);
 
     // start SPI with hardware chip select disabled (TMC library handles this). 
-    SPI.begin(false);
+    SPI1.begin(false);
 
     EEPROM.begin(512);
 }

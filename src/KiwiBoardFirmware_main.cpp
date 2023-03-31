@@ -15,7 +15,9 @@ bool settingsChanged = false;
 void ui_tick();
 
 // Display
-U8G2_SH1107_128X128_2_HW_I2C gfx(U8G2_R0, U8X8_PIN_NONE, OLED_SCL, OLED_SDA);
+//U8G2_SH1107_128X128_F_HW_I2C gfx(U8G2_R1, /* reset=*/ U8X8_PIN_NONE);
+U8G2_SH1107_PIMORONI_128X128_F_HW_I2C gfx(U8G2_R1, /* reset=*/ U8X8_PIN_NONE);
+ //gfx(U8G2_R0, OLED_SCL, OLED_SDA, U8X8_PIN_NONE);
 
 /**
  * Initialize the platform.   For the RP2040, we want to make sure that we configure all of the GPIO ports
@@ -30,11 +32,14 @@ U8G2_SH1107_128X128_2_HW_I2C gfx(U8G2_R0, U8X8_PIN_NONE, OLED_SCL, OLED_SDA);
 
 void setup() {
 
+    Serial.begin(115200);
+    Serial.println("Booted");
     platform = new PicoPlatform();
     platform->initializePlatform();
-
     motorControl = new MotorControl();
     motorControl->initMotionController(platform);
+    gfx.setI2CAddress(0x3d<<1);
+    gfx.begin();
 
     setupMenu();
     menuMgr.load(0xfade, NULL);
@@ -61,7 +66,7 @@ void setup() {
  * Main loop, we are delegating to the Task library to trigger all of our main processing, so pump the event bus
 */
 void loop() {
-
+    Serial.println("tick");
     taskManager.runLoop();
 
 }
