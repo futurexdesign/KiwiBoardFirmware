@@ -33,14 +33,6 @@ void PicoPlatform::initializePlatform() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
-//    pinMode(OLED_SDA, OUTPUT);
-//    pinMode(OLED_SCL, OUTPUT);
-    // Wire.setSDA(OLED_SDA);
-    // Wire.setSCL(OLED_SCL);
-
-    // Wire.begin();
-    
-
     // Remap IO to the correct pins for hardware SPI 0 
     SPI1.setRX(TMC_MISO);
     SPI1.setTX(TMC_MOSI);

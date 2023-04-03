@@ -17,7 +17,6 @@ void ui_tick();
 // Display
 //U8G2_SH1107_128X128_F_HW_I2C gfx(U8G2_R1, /* reset=*/ U8X8_PIN_NONE);
 U8G2_SH1107_PIMORONI_128X128_F_HW_I2C gfx(U8G2_R1, /* reset=*/ U8X8_PIN_NONE);
- //gfx(U8G2_R0, OLED_SCL, OLED_SDA, U8X8_PIN_NONE);
 
 /**
  * Initialize the platform.   For the RP2040, we want to make sure that we configure all of the GPIO ports
@@ -38,9 +37,11 @@ void setup() {
     platform->initializePlatform();
     motorControl = new MotorControl();
     motorControl->initMotionController(platform);
-    gfx.setI2CAddress(0x3d<<1);
+
+    gfx.setI2CAddress(0x3d<<1); // This is idiotic, but the i2c address is 7bit.. library needs 8bit... don't ask
     gfx.begin();
 
+    menuRunTime.setReadOnly(true);
     setupMenu();
     menuMgr.load(0xfade, NULL);
 
@@ -66,7 +67,6 @@ void setup() {
  * Main loop, we are delegating to the Task library to trigger all of our main processing, so pump the event bus
 */
 void loop() {
-    Serial.println("tick");
     taskManager.runLoop();
 
 }
@@ -131,9 +131,12 @@ void CALLBACK_FUNCTION settings_changed(int id) {
  * Commit settings to eeprom if they have changed
  */
 void commit_if_needed() {
+    Serial.println("checking if settings changed.");
     if (settingsChanged)
     {
+        menuMgr.save(0xfade);
         EEPROM.commit();
         settingsChanged = false;
+        Serial.println("changes committed" );
     }
 }

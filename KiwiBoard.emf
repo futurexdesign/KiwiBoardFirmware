@@ -9,7 +9,7 @@
       "defaultValue": "0",
       "item": {
         "enumEntries": [
-          "Agitate",
+          "Wash",
           "Spin",
           "Dry"
         ],
@@ -74,7 +74,7 @@
       "type": "subMenu",
       "item": {
         "secured": false,
-        "name": "Wash Settings",
+        "name": "Wash",
         "variableName": "washSettings",
         "id": 8,
         "eepromAddress": -1,
@@ -94,7 +94,7 @@
         "divisor": 1,
         "unitName": "min",
         "step": 1,
-        "name": "Total Duration",
+        "name": "Time",
         "variableName": "wash_duration",
         "id": 9,
         "eepromAddress": 4,
@@ -115,7 +115,7 @@
         "divisor": 1,
         "unitName": "sec",
         "step": 1,
-        "name": "Cycle Time",
+        "name": "Cycle",
         "variableName": "wash_cycle_time",
         "id": 10,
         "eepromAddress": 8,
@@ -136,7 +136,7 @@
         "divisor": 1,
         "unitName": "rpm",
         "step": 5,
-        "name": "Target Speed",
+        "name": "Speed",
         "variableName": "wash_speed",
         "id": 11,
         "eepromAddress": 10,
@@ -148,11 +148,65 @@
       }
     },
     {
+      "parentId": 8,
+      "type": "largeNumItem",
+      "defaultValue": "600",
+      "item": {
+        "digitsAllowed": 4,
+        "decimalPlaces": 0,
+        "negativeAllowed": true,
+        "name": "VMAX",
+        "variableName": "washVMAX",
+        "id": 26,
+        "eepromAddress": 43,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 8,
+      "type": "largeNumItem",
+      "defaultValue": "1000",
+      "item": {
+        "digitsAllowed": 4,
+        "decimalPlaces": 0,
+        "negativeAllowed": false,
+        "name": "AMAX",
+        "variableName": "washAMAX",
+        "id": 25,
+        "eepromAddress": 35,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 8,
+      "type": "largeNumItem",
+      "defaultValue": "600",
+      "item": {
+        "digitsAllowed": 4,
+        "decimalPlaces": 0,
+        "negativeAllowed": true,
+        "name": "washPos",
+        "variableName": "washPos",
+        "id": 27,
+        "eepromAddress": 51,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
       "parentId": 7,
       "type": "subMenu",
       "item": {
         "secured": false,
-        "name": "Spin Settings",
+        "name": "Spin",
         "variableName": "SpinSettings",
         "id": 12,
         "eepromAddress": -1,
@@ -172,7 +226,7 @@
         "divisor": 1,
         "unitName": "min",
         "step": 1,
-        "name": "Total Duration",
+        "name": "Time",
         "variableName": "spin_duration",
         "id": 13,
         "eepromAddress": 12,
@@ -193,7 +247,7 @@
         "divisor": 1,
         "unitName": "rpm",
         "step": 5,
-        "name": "Target Speed",
+        "name": "Speed",
         "variableName": "spin_speed",
         "id": 14,
         "eepromAddress": 14,
@@ -205,11 +259,47 @@
       }
     },
     {
+      "parentId": 12,
+      "type": "largeNumItem",
+      "defaultValue": "600",
+      "item": {
+        "digitsAllowed": 4,
+        "decimalPlaces": 0,
+        "negativeAllowed": false,
+        "name": "VMAX",
+        "variableName": "spinVMAX",
+        "id": 28,
+        "eepromAddress": 59,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 12,
+      "type": "largeNumItem",
+      "defaultValue": "1000",
+      "item": {
+        "digitsAllowed": 4,
+        "decimalPlaces": 0,
+        "negativeAllowed": false,
+        "name": "AMAX",
+        "variableName": "spinAMAX",
+        "id": 29,
+        "eepromAddress": 67,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
       "parentId": 7,
       "type": "subMenu",
       "item": {
         "secured": false,
-        "name": "DrySettings",
+        "name": "Dry",
         "variableName": "DrySettings",
         "id": 15,
         "eepromAddress": -1,
@@ -229,7 +319,7 @@
         "divisor": 1,
         "unitName": "min",
         "step": 1,
-        "name": "Total Duration",
+        "name": "Time",
         "variableName": "dry_duration",
         "id": 16,
         "eepromAddress": 16,
@@ -250,7 +340,7 @@
         "divisor": 1,
         "unitName": "rpm",
         "step": 5,
-        "name": "Target Speed",
+        "name": "Speed",
         "variableName": "dry_speed",
         "id": 17,
         "eepromAddress": 18,
@@ -267,7 +357,7 @@
       "defaultValue": "true",
       "item": {
         "naming": "ON_OFF",
-        "name": "Fan Cooldown",
+        "name": "Cooldown",
         "variableName": "fanCooldown",
         "id": 18,
         "eepromAddress": 20,
@@ -288,7 +378,7 @@
         "divisor": 1,
         "unitName": "min",
         "step": 1,
-        "name": "Cooldown Time",
+        "name": "Time",
         "variableName": "cooldownTime",
         "id": 19,
         "eepromAddress": 21,
@@ -319,7 +409,7 @@
       },
       {
         "name": "DISPLAY_TYPE",
-        "latestValue": "U8G2_SH1107_128X128_F_HW_I2C",
+        "latestValue": "U8G2_SH1107_PIMORONI_128X128_F_HW_I2C",
         "subsystem": "DISPLAY"
       },
       {
@@ -344,7 +434,7 @@
       },
       {
         "name": "SW_POLLING_MODE",
-        "latestValue": "SWITCHES_POLL_EVERYTHING",
+        "latestValue": "SWITCHES_NO_POLLING",
         "subsystem": "INPUT"
       },
       {
@@ -389,7 +479,7 @@
       },
       {
         "name": "ITEM_FONT",
-        "latestValue": "def:,1",
+        "latestValue": "avl:u8g2_font_fub11_tf,1",
         "subsystem": "THEME"
       },
       {
