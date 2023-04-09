@@ -14,7 +14,7 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform)
 
     TMC5160::PowerStageParameters powerStageParams; // defaults.
     TMC5160::MotorParameters motorParams;
-    motorParams.globalScaler = 98; // Adapt to your driver and motor (check TMC5160 datasheet - "Selecting sense resistors")
+    motorParams.globalScaler = 160; // Adapt to your driver and motor (check TMC5160 datasheet - "Selecting sense resistors")
     motorParams.irun = 16;         // 31 is max running current... so cutting in half brought things down to <5w
     motorParams.ihold = 0;         // holding current, 0 enables freewheel
 
@@ -97,8 +97,10 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
         // t is 1.398101 at 12mhz
         motor->setAcceleration(currentSettings.wash_amax);
 
-        // Make two rotations
-        motor->setTargetPosition(currentSettings.wash_pos); // 200 full steps per revolution
+        // Rotate the configured number of full steps
+        state.washSteps = currentSettings.wash_pos;
+        motor->setTargetPosition(state.washSteps); // 200 full steps per revolution
+
         state.direction = false;
     }
     else if (programId == 1)
@@ -185,12 +187,15 @@ void MotorControl::exec()
     {
         motor->setMaxSpeed(0);
         platform->enableMotor(false);
+
         if (state.program == 2)
         {
             // If we finished a dry cycle, trigger cooldown
             platform->startCooldown();
         }
         state.isRunning = false;
+
+        // Advance to next program in the run schedule?
     }
     else if (state.program == 0)
     {
@@ -206,7 +211,7 @@ void MotorControl::exec()
             Serial.println("Reverse");
             // reverse directions
             state.direction = !state.direction;
-            motor->setTargetPosition(state.direction ? 0 : 600);
+            motor->setTargetPosition(state.direction ? 0 : state.washSteps);
         }
     }
 }
@@ -248,4 +253,11 @@ unsigned long MotorControl::getSecondsRemaining()
     }
 
     return rtn;
+}
+
+/**
+ * Return the current DriverStatus from the underlying motor control
+ */
+TMC5160::DriverStatus MotorControl::getDriverStatus() {
+    return motor->getDriverStatus();
 }

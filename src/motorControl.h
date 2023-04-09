@@ -55,12 +55,18 @@ class MotorControl : public Executable
             bool isStopping = false;
             int program;    // 0 = agitate; 1 = spin; 2 = dry
             bool direction; // false = CW ; true = CCW
+            int washSteps; // whole steps configured for wash cycle
             unsigned int stopping_cnt = 0;
 
             int rpm;
             unsigned long run_start;    // when did the program phase start
             unsigned long run_end; // How long should this step be, when we exceed this, do next action.
         };
+
+        /*
+         * Return the current driver status
+         */
+        TMC5160::DriverStatus getDriverStatus();
 
     private:
         TMC5160_SPI *motor;
