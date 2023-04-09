@@ -13,6 +13,8 @@ MotorControl *motorControl;
 bool settingsChanged = false;
 
 void ui_tick();
+void motorErrorDialog(TMC5160::DriverStatus);
+void titleBarClick(int id);
 
 // Display
 //U8G2_SH1107_128X128_F_HW_I2C gfx(U8G2_R1, /* reset=*/ U8X8_PIN_NONE);
@@ -44,6 +46,8 @@ void setup() {
     menuRunTime.setReadOnly(true);
     setupMenu();
     menuMgr.load(0xfade, NULL);
+
+    setTitlePressedCallback(titleBarClick);
 
     // Setup tasks
     // Platform task is relatively low priority
@@ -101,6 +105,68 @@ void ui_tick() {
             menuRunTime.changeOccurred(true);
         }
     }
+
+    // Check for motor status, if overheated or shorted, alert user
+    TMC5160::DriverStatus curStatus = motorControl->getDriverStatus();
+
+    if (curStatus != TMC5160::DriverStatus::OK) {
+        // launch error dialog
+        motorErrorDialog(curStatus);
+    }
+}
+
+/**
+ * An error has been found.  Present a dialog to the user so they know what happened.
+ */
+void motorErrorDialog(TMC5160::DriverStatus status) {
+    Serial.println("Stepper drive error detected, reports not ok");
+    Serial.print("Current drive status: ");
+    Serial.println(status);
+
+    const char error[] PROGMEM = "Stepper Drive Error";
+    char msg[50]; // 200 character string
+    switch(status) {
+        case TMC5160::OT:
+        case TMC5160::OTPW:
+            strcpy(msg, "Driver is overheating");
+            break;
+        case TMC5160::S2VSA:
+            strcpy(msg, "A Phase short to 12v");
+            break;
+        case TMC5160::S2VSB:
+            strcpy(msg, "B Phase short to 12v");
+            break;
+        case TMC5160::S2GA:
+            strcpy(msg, "A Phase short to gnd");
+            break;
+        case TMC5160::S2GB:
+            strcpy(msg, "B Phase short to gnd");
+            break;
+        case TMC5160::CP_UV:
+            strcpy(msg, "CP Under-volt");
+            break;
+        case TMC5160::OTHER_ERR:
+            strcpy(msg, "Unknown TMC Error");
+            break;
+    }
+
+    BaseDialog *dlg = renderer.getDialog();
+    if (dlg)
+    {
+        dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
+        dlg->show(error, false);
+        dlg->copyIntoBuffer(msg);
+    }
+}
+
+/**
+ * Show version dialog.
+ *
+ * @param id
+ */
+void titleBarClick(int id) {
+
+
 }
 
 void CALLBACK_FUNCTION progChange(int id) {

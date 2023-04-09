@@ -105,6 +105,7 @@ void PicoPlatform::exec() {
     if (in_cooldown) {
         if (millis() >= cooldown_end) {
             enableFan(false);
+            in_cooldown = false;
         }
     }
 }
