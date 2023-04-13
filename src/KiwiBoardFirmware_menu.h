@@ -19,6 +19,7 @@
 #include <IoAbstraction.h>
 #include <EepromItemStorage.h>
 #include <ArduinoEEPROMAbstraction.h>
+#include "picoPlatform.h"
 
 // variables we declare that you may need to access
 extern const PROGMEM ConnectorLocalInfo applicationInfo;
@@ -29,6 +30,12 @@ extern GraphicsDeviceRenderer renderer;
 
 
 // Global Menu Item exports
+extern AnalogMenuItem menuIRun;
+extern AnalogMenuItem menuGlobalScaler;
+extern BooleanMenuItem menuInvertEncoder;
+extern AnalogMenuItem menuBacklight;
+extern BackMenuItem menuBackAdvanced;
+extern SubMenuItem menuAdvanced;
 extern AnalogMenuItem menucooldownTime;
 extern BooleanMenuItem menufanCooldown;
 extern AnalogMenuItem menudry_speed;
@@ -63,6 +70,9 @@ void setupMenu();
 // Callback functions must always include CALLBACK_FUNCTION after the return type
 #define CALLBACK_FUNCTION
 
+void CALLBACK_FUNCTION GlobalScalerChanged(int id);
+void CALLBACK_FUNCTION backlightChange(int id);
+void CALLBACK_FUNCTION iRunChanged(int id);
 void CALLBACK_FUNCTION progChange(int id);
 void CALLBACK_FUNCTION run(int id);
 void CALLBACK_FUNCTION settings_changed(int id);

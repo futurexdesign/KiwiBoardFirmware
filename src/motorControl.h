@@ -17,7 +17,7 @@ class MotorControl : public Executable
         /**
          * Initialize the TMC5160 motion controller running on the provided platform.
          */
-        void initMotionController(PicoPlatform *curPlatform);
+        void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun);
 
         void stopMotion();
         void startProgram(int programId, SETTINGS currentSettings);

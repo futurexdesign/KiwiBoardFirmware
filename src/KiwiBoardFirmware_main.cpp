@@ -35,10 +35,9 @@ void setup() {
 
     Serial.begin(115200);
     Serial.println("Booted");
+
     platform = new PicoPlatform();
     platform->initializePlatform();
-    motorControl = new MotorControl();
-    motorControl->initMotionController(platform);
 
     gfx.setI2CAddress(0x3d<<1); // This is idiotic, but the i2c address is 7bit.. library needs 8bit... don't ask
     gfx.begin();
@@ -46,6 +45,17 @@ void setup() {
     menuRunTime.setReadOnly(true);
     setupMenu();
     menuMgr.load(0xfade, NULL);
+
+    // Check for encoder inversion..
+    if (menuInvertEncoder.getBoolean()) {
+        // Inversion selected, reinitialize the encoder plugin with the pins reversed.
+        Serial.println("Encoder inversion requested.. reinit menuMgr with encoder flipped");
+        menuMgr.initForEncoder(&renderer, &menuProgram, ENC2, ENC1, BUTTON);
+    }
+
+    // bring up motor control with configured values 
+    motorControl = new MotorControl();
+    motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(), menuIRun.getIntValueIncludingOffset());
 
     setTitlePressedCallback(titleBarClick);
 
@@ -191,6 +201,47 @@ void CALLBACK_FUNCTION run(int id) {
 void CALLBACK_FUNCTION settings_changed(int id) {
 
     settingsChanged = true;
+
+}
+
+/**
+ * Callback when the user changes global scaler.   The motor control needs to be fully stopped,
+ * and the initialized again with new value.  This shouldn't be done with the motor running..
+ *
+ * @param id
+ */
+void CALLBACK_FUNCTION GlobalScalerChanged(int id) {
+    Serial.println("GlobalScaler changed... e-stop motor control, and reinit ");
+
+    // Shut off the TMC
+    platform->enableMotor(false);
+    delay(100); // wait for everything to settle...
+    // init
+    motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(), menuIRun.getIntValueIncludingOffset());
+
+    settingsChanged = true;
+}
+
+/**
+ * Callback when the user changes global scaler.   The motor control needs to be fully stopped,
+ * and the initialized again with new value.  This shouldn't be done with the motor running..
+ *
+ * @param id
+ */
+void CALLBACK_FUNCTION iRunChanged(int id) {
+    Serial.println("iRun changed... e-stop motor control, and reinit ");
+
+    // Shut off the TMC
+    platform->enableMotor(false);
+    delay(100); // wait for everything to settle...
+    // init
+    motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(), menuIRun.getIntValueIncludingOffset());
+
+    settingsChanged = true;
+}
+
+void CALLBACK_FUNCTION backlightChange(int id) {
+    Serial.println("Backlight change request");
 
 }
 /**
