@@ -5,7 +5,7 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
-void MotorControl::initMotionController(PicoPlatform *curPlatform)
+void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun)
 {
     this->platform = curPlatform; // Set the current platform.
 
@@ -14,15 +14,19 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform)
 
     TMC5160::PowerStageParameters powerStageParams; // defaults.
     TMC5160::MotorParameters motorParams;
-    motorParams.globalScaler = 160; // Adapt to your driver and motor (check TMC5160 datasheet - "Selecting sense resistors")
-    motorParams.irun = 16;         // 31 is max running current... so cutting in half brought things down to <5w
+
+    motorParams.globalScaler = globalScaler; // Use Excel file to find correct scaler so that ihold=31 is max desired current
+    motorParams.irun = iRun;         // 31 is max running current, adjust accordingly.
     motorParams.ihold = 0;         // holding current, 0 enables freewheel
 
-    // TODO Setup any stealth-chop settings we may want changed from defaults.
-
+   // Library initializes with StealthChop enabled.
     motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
-
     motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
+
+    // Disable the transition to SpreadCycle, we don't need accuracy, prefer StealthChop
+    motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
+
+    // TODO Setup any stealth-chop settings we may want changed from defaults.
     motor->stop(); // Ensure the controller is initialized with the motor stopped
 
     // TODO, add in coms check back in?

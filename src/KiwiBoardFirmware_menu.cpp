@@ -11,7 +11,6 @@
 #include <tcMenu.h>
 #include "KiwiBoardFirmware_menu.h"
 #include "ThemeMonoInverse.h"
-#include "picoPlatform.h"
 
 // Global variable declarations
 const  ConnectorLocalInfo applicationInfo = { "KiwiBoard", "a44877f0-b65e-4c52-9701-aefa48df02b9" };
@@ -20,6 +19,17 @@ U8g2Drawable gfxDrawable(&gfx);
 GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
+const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
+AnalogMenuItem menuIRun(&minfoIRun, 31, NULL, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfoGlobalScaler = { "Global Scaler", 32, 75, 255, GlobalScalerChanged, 0, 1, "" };
+AnalogMenuItem menuGlobalScaler(&minfoGlobalScaler, 148, &menuIRun, INFO_LOCATION_PGM);
+const BooleanMenuInfo minfoInvertEncoder = { "Invert Encoder", 34, 79, 1, NO_CALLBACK, NAMING_YES_NO };
+BooleanMenuItem menuInvertEncoder(&minfoInvertEncoder, false, &menuGlobalScaler, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfoBacklight = { "Backlight", 35, 80, 7, backlightChange, 1, 1, "" };
+AnalogMenuItem menuBacklight(&minfoBacklight, 3, &menuInvertEncoder, INFO_LOCATION_PGM);
+const SubMenuInfo minfoAdvanced = { "Advanced", 30, 0xffff, 0, NO_CALLBACK };
+BackMenuItem menuBackAdvanced(&minfoAdvanced, &menuBacklight, INFO_LOCATION_PGM);
+SubMenuItem menuAdvanced(&minfoAdvanced, &menuBackAdvanced, NULL, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfocooldownTime = { "Time", 19, 21, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menucooldownTime(&minfocooldownTime, 1, NULL, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfofanCooldown = { "Cooldown", 18, 20, 1, settings_changed, NAMING_ON_OFF };
@@ -30,7 +40,7 @@ const AnalogMenuInfo minfodry_duration = { "Time", 16, 16, 10, settings_changed,
 AnalogMenuItem menudry_duration(&minfodry_duration, 4, &menudry_speed, INFO_LOCATION_PGM);
 const SubMenuInfo minfoDrySettings = { "Dry", 15, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCATION_PGM);
-SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, NULL, INFO_LOCATION_PGM);
+SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuAdvanced, INFO_LOCATION_PGM);
 RENDERING_CALLBACK_NAME_INVOKE(fnspinAMAXRtCall, largeNumItemRenderFn, "AMAX", 67, NO_CALLBACK)
 EditableLargeNumberMenuItem menuspinAMAX(fnspinAMAXRtCall, LargeFixedNumber(4, 0, 1000U, 0U, false), 29, false, NULL);
 RENDERING_CALLBACK_NAME_INVOKE(fnspinVMAXRtCall, largeNumItemRenderFn, "VMAX", 59, NO_CALLBACK)
