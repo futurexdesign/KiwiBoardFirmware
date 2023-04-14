@@ -13,7 +13,7 @@
 
 #include <Arduino.h>
 #include <tcMenu.h>
-#include "tcMenuU8g2.h"
+#include "tcMenuTfteSpi.h"
 #include <RuntimeMenuItem.h>
 #include <EditableLargeNumberMenuItem.h>
 #include <IoAbstraction.h>
@@ -23,7 +23,8 @@
 
 // variables we declare that you may need to access
 extern const PROGMEM ConnectorLocalInfo applicationInfo;
-extern U8G2_SH1107_PIMORONI_128X128_F_HW_I2C gfx;
+extern TFT_eSPI gfx;
+extern TfteSpiDrawable gfxDrawable;
 extern GraphicsDeviceRenderer renderer;
 
 // Any externals needed by IO expanders, EEPROMs etc
@@ -33,7 +34,6 @@ extern GraphicsDeviceRenderer renderer;
 extern AnalogMenuItem menuIRun;
 extern AnalogMenuItem menuGlobalScaler;
 extern BooleanMenuItem menuInvertEncoder;
-extern AnalogMenuItem menuBacklight;
 extern BackMenuItem menuBackAdvanced;
 extern SubMenuItem menuAdvanced;
 extern AnalogMenuItem menucooldownTime;
@@ -56,6 +56,7 @@ extern AnalogMenuItem menuwash_cycle_time;
 extern AnalogMenuItem menuwash_duration;
 extern BackMenuItem menuBackwashSettings;
 extern SubMenuItem menuwashSettings;
+extern AnalogMenuItem menuBacklight1;
 extern BackMenuItem menuBackSettings;
 extern SubMenuItem menuSettings;
 extern TimeFormattedMenuItem menuRunTime;

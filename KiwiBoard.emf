@@ -71,6 +71,27 @@
     },
     {
       "parentId": 7,
+      "type": "analogItem",
+      "defaultValue": "3",
+      "item": {
+        "maxValue": 7,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "",
+        "step": 1,
+        "name": "Backlight1",
+        "variableName": "Backlight1",
+        "id": 36,
+        "eepromAddress": 80,
+        "functionName": "@backlightChange",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 7,
       "type": "subMenu",
       "item": {
         "secured": false,
@@ -406,27 +427,6 @@
     },
     {
       "parentId": 30,
-      "type": "analogItem",
-      "defaultValue": "3",
-      "item": {
-        "maxValue": 7,
-        "offset": 1,
-        "divisor": 1,
-        "unitName": "",
-        "step": 1,
-        "name": "Backlight",
-        "variableName": "Backlight",
-        "id": 35,
-        "eepromAddress": 80,
-        "functionName": "@backlightChange",
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 30,
       "type": "boolItem",
       "defaultValue": "false",
       "item": {
@@ -486,13 +486,13 @@
   ],
   "codeOptions": {
     "embeddedPlatform": "ARDUINO32",
-    "lastDisplayUuid": "8646497b-1427-415f-8020-1260a1fef57d",
+    "lastDisplayUuid": "e6342680-6fab-4d1b-ac08-ce8dbfc0974c",
     "lastInputUuid": "6dd87e7d-e751-4912-a70d-91793b1d3d87",
     "lastRemoteUuid": "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb",
     "lastRemoteUuids": [
       "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb"
     ],
-    "lastThemeUuid": "0dd60ceb-7e0f-46e2-8d40-b264eb3aa7e0",
+    "lastThemeUuid": "e3d447ef-a620-47fa-9a3c-012665b30bdf",
     "applicationUUID": "a44877f0-b65e-4c52-9701-aefa48df02b9",
     "applicationName": "KiwiBoard",
     "lastProperties": [
@@ -502,13 +502,13 @@
         "subsystem": "DISPLAY"
       },
       {
-        "name": "DISPLAY_TYPE",
-        "latestValue": "U8G2_SH1107_PIMORONI_128X128_F_HW_I2C",
+        "name": "DISPLAY_ROTATION",
+        "latestValue": "3",
         "subsystem": "DISPLAY"
       },
       {
-        "name": "DISPLAY_CONFIG",
-        "latestValue": "",
+        "name": "DOUBLE_BUFFER_ROWS",
+        "latestValue": "100",
         "subsystem": "DISPLAY"
       },
       {
@@ -517,13 +517,63 @@
         "subsystem": "DISPLAY"
       },
       {
-        "name": "YIELDING_WIRE_CB",
+        "name": "TOUCH_SEPARATOR",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_SCREEN_REQUIRED",
         "latestValue": "false",
         "subsystem": "DISPLAY"
       },
       {
-        "name": "USE_UTF8_SUPPORT",
+        "name": "TOUCH_CALIB_WIDTH",
+        "latestValue": "240",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TOUCH_CALIB_HEIGHT",
+        "latestValue": "320",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TOUCH_USE_RAW_TFT_FUNCTION",
+        "latestValue": "true",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "ORIENTATION_SEPARATOR",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_SWAP_XY",
         "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_X_INVERTED",
+        "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_Y_INVERTED",
+        "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "CALIB_SEPARATOR",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_SCREEN_CALIBRATE",
+        "latestValue": "true",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_CALIBRATION_STORAGE_LOC",
+        "latestValue": "400",
         "subsystem": "DISPLAY"
       },
       {
@@ -582,13 +632,8 @@
         "subsystem": "THEME"
       },
       {
-        "name": "TITLE_HEADER_PADDING",
-        "latestValue": "2",
-        "subsystem": "THEME"
-      },
-      {
-        "name": "TITLE_TO_ITEM_SPACING",
-        "latestValue": "2",
+        "name": "BORDER_FOR_ACTIONS",
+        "latestValue": "0",
         "subsystem": "THEME"
       },
       {
@@ -599,6 +644,16 @@
       {
         "name": "USE_TC_UNICODE",
         "latestValue": "false",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "USE_SLIDER_ANALOG",
+        "latestValue": "false",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "NEED_EDITING_ICONS",
+        "latestValue": "true",
         "subsystem": "THEME"
       }
     ],

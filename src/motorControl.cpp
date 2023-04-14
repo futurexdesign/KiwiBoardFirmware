@@ -32,7 +32,7 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     // TODO, add in coms check back in?
 
     // Check if the TMC5160 answers back
-    TMC5160_Reg::IOIN_Register ioin = {0};
+ //   TMC5160_Reg::IOIN_Register ioin = {0};
 
 //    while (ioin.version != motor->IC_VERSION)
 //    {

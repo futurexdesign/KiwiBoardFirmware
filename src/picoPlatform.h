@@ -10,9 +10,17 @@
 #define MOTOR_EN (9u)
 #define FAN_CTL (14u)
 #define HEATER_CTL (15u)
-#define BUTTON (18u)
-#define ENC1 (17u)
-#define ENC2 (16u)
+#define BUTTON (6u)
+#define ENC1 (5u)
+#define ENC2 (4u)
+
+/** Expansion Port Pins **/
+#define EXPANSION1 (0u)
+#define EXPANSION2 (1u)
+#define EXPANSION3 (2u)
+#define EXPANSION4 (3u)
+
+
 
 /** SPI Bus for TMC5160 */
 #define TMC_SCLK (10u)
@@ -20,9 +28,14 @@
 #define TMC_MISO (12u)
 #define TMC_SS (13u)
 
-/** i2c Bus for OLED */
-#define OLED_SCL (21u)
-#define OLED_SDA (20u)
+/** TFT Outputs */
+#define LCD_MISO (16u)
+#define LCD_SCK (18u)
+#define LCD_MOSI (19u)
+#define LCD_CS (17u)
+#define LCD_DC (21u)
+#define LCD_RESET (22u);
+#define LCD_BACKLIGHT (26)
 
 
 class PicoPlatform : public Executable {
@@ -68,6 +81,13 @@ class PicoPlatform : public Executable {
          * 2: If cool-down is enabled, Check to see if the cool-down timer has expired, if it has, cycle off the fan.
          */
         void exec() override;
+
+        /**
+         * Set the backlight level.   Accept integer value 1 - 8
+         *
+         * This will output a PWM signal to LCD_BACKLIGHT
+         */
+        static void setBacklight(int value);
 
         bool isMotorEnabled();
         bool isHeaterEnabled();

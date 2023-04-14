@@ -3,7 +3,6 @@
 */
 #include <Arduino.h>
 #include <SPI.h>
-#include <Wire.h>
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
@@ -30,8 +29,8 @@ void PicoPlatform::initializePlatform() {
 
     // Remap  IO to the correct pins for i2c0
     // Turn on the LED
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
+//    pinMode(LED_BUILTIN, OUTPUT);
+//    digitalWrite(LED_BUILTIN, HIGH);
 
     // Remap IO to the correct pins for hardware SPI 0 
     SPI1.setRX(TMC_MISO);
@@ -41,6 +40,19 @@ void PicoPlatform::initializePlatform() {
 
     // start SPI with hardware chip select disabled (TMC library handles this). 
     SPI1.begin(false);
+
+    pinMode(LCD_BACKLIGHT, OUTPUT);
+    analogWrite(LCD_BACKLIGHT, 125);
+    //Setup SPI0 for the TFT
+    SPI.setCS(LCD_CS);
+    SPI.setRX(LCD_MISO);
+    SPI.setTX(LCD_MOSI);
+    SPI.setSCK(LCD_SCK);
+    SPI.begin(false);
+
+
+    // screenshot button, active high
+    pinMode(EXPANSION1, INPUT_PULLDOWN);
 
     EEPROM.begin(512);
 }
@@ -127,4 +139,12 @@ void PicoPlatform::startCooldown() {
         // shut off fan
         enableFan(false);
     }
+}
+
+void PicoPlatform::setBacklight(int value) {
+
+    // Convert the 1-8 to 0-254
+    int backlight = value * 32 - 1; // 1 = 31 ::  8 = 255;
+    analogWrite(LCD_BACKLIGHT, backlight);
+
 }

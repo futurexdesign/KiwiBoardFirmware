@@ -4,7 +4,6 @@
 
 #include "settings.h"
 
-
 SETTINGS getSettings() {
 
     SETTINGS rtn{};
