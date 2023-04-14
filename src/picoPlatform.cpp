@@ -27,10 +27,9 @@ void PicoPlatform::initializePlatform() {
     pinMode(FAN_CTL, OUTPUT_8MA);
     digitalWrite(FAN_CTL, LOW);
 
-    // Remap  IO to the correct pins for i2c0
     // Turn on the LED
-//    pinMode(LED_BUILTIN, OUTPUT);
-//    digitalWrite(LED_BUILTIN, HIGH);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
 
     // Remap IO to the correct pins for hardware SPI 0 
     SPI1.setRX(TMC_MISO);
