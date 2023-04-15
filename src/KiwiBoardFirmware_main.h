@@ -48,7 +48,9 @@ void run(int program);
 
 void setIconStopped(MenuItem* icon); 
 
-void resetIcons(); 
+void resetIcons();
+
+void renderTimer(unsigned int encoderValue, RenderPressMode clicked);
 
 
 #endif //KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H

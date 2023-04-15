@@ -8,11 +8,17 @@
 #include <BaseDialog.h>
 #include "splashScreen.h"
 #include "KiwiBoardFirmware_main.h"
+
+#ifdef SCREENCAP
 #include "screenServer.h"
+#endif
+
 #include "icons.h"
+#include "MenuChangeObserver.h"
 
 PicoPlatform *platform;
 MotorControl *motorControl;
+MenuChangeObserver *observer;
 
 bool led = false;
 
@@ -32,8 +38,7 @@ MenuItem *stoppedButton;
  * Finally configure and initialize the menu system.
  */
 
-void setup()
-{
+void setup() {
 
     Serial.begin(115200);
     Serial.println("Booted");
@@ -61,13 +66,18 @@ void setup()
     setupMenu();
     menuMgr.load(0xfadf, NULL);
 
+    // restore backlight setting
+    PicoPlatform::setBacklight(menuBacklight.getIntValueIncludingOffset());
+
     // Check for encoder inversion..
-    if (menuInvertEncoder.getBoolean())
-    {
+    if (menuInvertEncoder.getBoolean()) {
         // Inversion selected, reinitialize the encoder plugin with the pins reversed.
         Serial.println("Encoder inversion requested.. reinit menuMgr with encoder flipped");
         menuMgr.initForEncoder(&renderer, &menuRunTime, ENC2, ENC1, BUTTON);
     }
+
+    observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
+    menuMgr.addChangeNotification(observer);
 
     setMenuOptions();
 
@@ -79,8 +89,7 @@ void setup()
 /**
  * Main loop, we are delegating to the Task library to trigger all of our main processing, so pump the event bus
  */
-void loop()
-{
+void loop() {
     taskManager.runLoop();
 }
 
@@ -91,40 +100,35 @@ void loop()
  * 2: If we just finished a program, show the complete dialog (?)
  * 3: Update the menu bar icons if the heater or fan are active (need those icons)
  */
-void ui_tick()
-{
+void ui_tick() {
 
     led = !led;
 
     digitalWrite(LED_BUILTIN, led);
     // Update the remaining time...
-    if (motorControl->isRunning())
-    {
+    if (motorControl->isRunning()) {
         unsigned long secRemaining = motorControl->getSecondsRemaining();
 
         int minutes = secRemaining / 60;
         int secRemand = secRemaining % 60;
 
         struct TimeStorage ts = menuRunTime.getTime();
-        if (ts.seconds != secRemand || ts.minutes != minutes)
-        {
+        if (ts.seconds != secRemand || ts.minutes != minutes) {
             ts.seconds = secRemand;
             ts.minutes = minutes;
             menuRunTime.setTime(ts);
             menuRunTime.changeOccurred(true);
         }
-    }
-    else
-    {
+    } else {
         struct TimeStorage ts = menuRunTime.getTime();
-        if (ts.seconds != 0)
-        {
+        if (ts.seconds != 0) {
             ts.seconds = 0;
             ts.minutes = 0;
             menuRunTime.setTime(ts);
             menuRunTime.changeOccurred(true);
 
             resetIcons();
+            observer->resetConstraint();
         }
     }
 
@@ -132,8 +136,7 @@ void ui_tick()
     TMC5160::DriverStatus curStatus = motorControl->getDriverStatus();
     Serial.println("Driver Status:");
     Serial.println(curStatus);
-    if (curStatus != TMC5160::DriverStatus::OK)
-    {
+    if (curStatus != TMC5160::DriverStatus::OK) {
         // launch error dialog
         motorErrorDialog(curStatus);
     }
@@ -142,43 +145,40 @@ void ui_tick()
 /**
  * An error has been found.  Present a dialog to the user so they know what happened.
  */
-void motorErrorDialog(TMC5160::DriverStatus status)
-{
+void motorErrorDialog(TMC5160::DriverStatus status) {
     Serial.println("Stepper drive error detected, reports not ok");
     Serial.print("Current drive status: ");
     Serial.println(status);
 
     const char error[] PROGMEM = "Stepper Drive Error";
     char msg[50]; // 200 character string
-    switch (status)
-    {
-    case TMC5160::OT:
-    case TMC5160::OTPW:
-        strcpy(msg, "Driver is overheating");
-        break;
-    case TMC5160::S2VSA:
-        strcpy(msg, "A Phase short to 12v");
-        break;
-    case TMC5160::S2VSB:
-        strcpy(msg, "B Phase short to 12v");
-        break;
-    case TMC5160::S2GA:
-        strcpy(msg, "A Phase short to gnd");
-        break;
-    case TMC5160::S2GB:
-        strcpy(msg, "B Phase short to gnd");
-        break;
-    case TMC5160::CP_UV:
-        strcpy(msg, "CP Under-volt");
-        break;
-    case TMC5160::OTHER_ERR:
-        strcpy(msg, "Unknown TMC Error");
-        break;
+    switch (status) {
+        case TMC5160::OT:
+        case TMC5160::OTPW:
+            strcpy(msg, "Driver is overheating");
+            break;
+        case TMC5160::S2VSA:
+            strcpy(msg, "A Phase short to 12v");
+            break;
+        case TMC5160::S2VSB:
+            strcpy(msg, "B Phase short to 12v");
+            break;
+        case TMC5160::S2GA:
+            strcpy(msg, "A Phase short to gnd");
+            break;
+        case TMC5160::S2GB:
+            strcpy(msg, "B Phase short to gnd");
+            break;
+        case TMC5160::CP_UV:
+            strcpy(msg, "CP Under-volt");
+            break;
+        case TMC5160::OTHER_ERR:
+            strcpy(msg, "Unknown TMC Error");
+            break;
     }
 
     BaseDialog *dlg = renderer.getDialog();
-    if (dlg)
-    {
+    if (dlg) {
         dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
         dlg->show(error, false);
         dlg->copyIntoBuffer(msg);
@@ -188,8 +188,7 @@ void motorErrorDialog(TMC5160::DriverStatus status)
 /**
  * Screen Capture Task
  */
-void screenCaptureTask()
-{
+void screenCaptureTask() {
 
 #ifdef SCREENCAP
     // If EXPANSION1 is high, trigger the screen capture routine.
@@ -205,14 +204,12 @@ void screenCaptureTask()
  *
  * @param id
  */
-void titleBarClick(int id)
-{
+void titleBarClick(int id) {
 
     const char error[] PROGMEM = "Free Heap Usage";
 
     BaseDialog *dlg = renderer.getDialog();
-    if (dlg)
-    {
+    if (dlg) {
         dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
         dlg->show(error, false);
         int freeHeap = rp2040.getFreeHeap();
@@ -222,22 +219,24 @@ void titleBarClick(int id)
     }
 }
 
-void CALLBACK_FUNCTION wash(int id)
-{
+void CALLBACK_FUNCTION wash(int id) {
     run(0);
     setIconStopped(&menuWash);
+    observer->constrainToStopButton(&menuWash);
 }
 
-void CALLBACK_FUNCTION spin(int id)
-{
+void CALLBACK_FUNCTION spin(int id) {
     run(1);
     setIconStopped(&menuSpin);
+    observer->constrainToStopButton(&menuSpin);
+
 }
 
-void CALLBACK_FUNCTION dry(int id)
-{
+void CALLBACK_FUNCTION dry(int id) {
     run(2);
     setIconStopped(&menuDry);
+    observer->constrainToStopButton(&menuDry);
+
 }
 
 /**
@@ -246,21 +245,16 @@ void CALLBACK_FUNCTION dry(int id)
  * If we are running, force a stop of the current program
  * If we are stopped, trigger a start of the selected program
  */
-void run(int program)
-{
+void run(int program) {
 
-    if (motorControl->isRunning())
-    {
+    if (motorControl->isRunning()) {
         motorControl->stopMotion();
-    }
-    else
-    {
+    } else {
         motorControl->startProgram(program, getSettings());
     }
 }
 
-void CALLBACK_FUNCTION settings_changed(int id)
-{
+void CALLBACK_FUNCTION settings_changed(int id) {
 
     settingsChanged = true;
 }
@@ -271,8 +265,7 @@ void CALLBACK_FUNCTION settings_changed(int id)
  *
  * @param id
  */
-void CALLBACK_FUNCTION GlobalScalerChanged(int id)
-{
+void CALLBACK_FUNCTION GlobalScalerChanged(int id) {
     Serial.println("GlobalScaler changed... e-stop motor control, and reinit ");
 
     // Shut off the TMC
@@ -291,8 +284,7 @@ void CALLBACK_FUNCTION GlobalScalerChanged(int id)
  *
  * @param id
  */
-void CALLBACK_FUNCTION iRunChanged(int id)
-{
+void CALLBACK_FUNCTION iRunChanged(int id) {
     Serial.println("iRun changed... e-stop motor control, and reinit ");
 
     // Shut off the TMC
@@ -308,8 +300,7 @@ void CALLBACK_FUNCTION iRunChanged(int id)
 /**
  * When the backlight value changes, inform the platform.
  */
-void CALLBACK_FUNCTION backlightChange(int id)
-{
+void CALLBACK_FUNCTION backlightChange(int id) {
     int newVal = menuBacklight.getIntValueIncludingOffset();
     PicoPlatform::setBacklight(newVal);
 }
@@ -317,21 +308,17 @@ void CALLBACK_FUNCTION backlightChange(int id)
 /**
  * Commit settings to eeprom if they have changed
  */
-void commit_if_needed()
-{
+void commit_if_needed() {
     Serial.println("checking if settings changed.");
-    // TODO Why did this break?
-    //  if (settingsChanged)
-    //  {
-    //      menuMgr.save(0xfadf);
-    //      //EEPROM.commit();
-    //      settingsChanged = false;
-    //      Serial.println("changes committed" );
-    //  }
+    if (settingsChanged) {
+        menuMgr.save(0xfadf);
+        EEPROM.commit();
+        settingsChanged = false;
+        Serial.println("changes committed");
+    }
 }
 
-void scheduleTasks()
-{
+void scheduleTasks() {
     // Setup tasks
     // Platform task is relatively low priority
     // Schedule the platform task every 200ms
@@ -357,8 +344,7 @@ void scheduleTasks()
 /**
  * Setup all the UI options required to make NewUI work
  */
-void setMenuOptions()
-{
+void setMenuOptions() {
 
     // first we get the graphics factory
     auto &factory = renderer.getGraphicsPropertiesFactory();
@@ -369,12 +355,12 @@ void setMenuOptions()
     // now we add the icons that we want to use with certain menu items
     const Coord iconSize(72, 72);
     factory.addImageToCache(
-        DrawableIcon(menuWash.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap0, CycleIconsBitmap3));
+            DrawableIcon(menuWash.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap0, CycleIconsBitmap3));
     factory.addImageToCache(
-        DrawableIcon(menuSpin.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap1, CycleIconsBitmap3));
+            DrawableIcon(menuSpin.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap1, CycleIconsBitmap3));
     factory.addImageToCache(DrawableIcon(menuDry.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap2));
     factory.addImageToCache(
-        DrawableIcon(menuSettings.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap3));
+            DrawableIcon(menuSettings.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap3));
 
     // and now we define that row 3 of the main menu will have three columns, drawn as icons
     factory.addGridPosition(&menuWash, GridPosition(GridPosition::DRAW_AS_ICON_ONLY,
@@ -397,25 +383,55 @@ void setMenuOptions()
                                         perSidePadding, MenuFontDef(nullptr, 7).fontData,
                                         MenuFontDef(nullptr, 7).fontMag, 2, 100,
                                         GridPosition::JUSTIFY_CENTER_VALUE_ONLY, MenuBorder(0));
-    
 
     // Settings for the Settings menu
-     // // here is how we completely redefine the drawing of a specific item, you can also define for submenu or default
+    // // here is how we completely redefine the drawing of a specific item, you can also define for submenu or default
     // color_t specialPalette[] { RGB(255, 255, 255), RGB(255, 0, 0), RGB(0, 0, 0), RGB(0, 0, 255) };
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(), settingsMenuPalette,
-                                        MenuPadding(4), nullptr, 4, 10, 36,
-                                        GridPosition::JUSTIFY_CENTER_WITH_VALUE , MenuBorder(2));
+
+    // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers 
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(),
+                                         settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 10, 36,
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuWash.getId(), settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 10, 36,
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSpin.getId(), settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 10, 36,
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuDry.getId(), settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 10, 36,
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuAdvanced.getId(),
+                                         settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 10, 36,
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
 
     appTitleMenuItem.setTitleOverridePgm("KiwiCleaner");
     factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0));
 
-
     // title widget... try one..
     renderer.setFirstWidget(&KiwiLogoWidget);
+
+    menuMgr.activateMenuItem(&menuWash);
+
+    // this didn't work
+    // const Coord logoSize(50, 50);
+    // factory.addImageToCache(DrawableIcon(0, logoSize, DrawableIcon::ICON_XBITMAP, KiwiLogoWidIcon0));
+    // factory.addGridPosition(getMenuItemById(0), GridPosition(GridPosition::DRAW_AS_ICON_ONLY,
+    //                                                          GridPosition::JUSTIFY_CENTER_NO_VALUE, 1, 1, 0, 50));
+
+    tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
 }
 
-void setIconStopped(MenuItem *icon)
-{
+void setIconStopped(MenuItem *icon) {
+
+    // Hijack the renderer ... hopefully..
+    // renderer.takeOverDisplay(renderTimer);
 
     stoppedButton = icon; // Keep track of this so we can reset it later.
 
@@ -426,7 +442,10 @@ void setIconStopped(MenuItem *icon)
 
     auto &factory = renderer.getGraphicsPropertiesFactory();
     const color_t activePalette[] = {RGB(255, 0, 0), RGB(255, 255, 255), RGB(0, 0, 255), RGB(255, 0, 0)};
-    factory.setDrawingPropertiesForItem(ItemDisplayProperties::COMPTYPE_ACTION, icon->getId(), activePalette, perSidePadding, MenuFontDef(nullptr, 2).fontData, MenuFontDef(nullptr, 7).fontMag, 2, 60, GridPosition::CORE_JUSTIFY_RIGHT, MenuBorder(0));
+    factory.setDrawingPropertiesForItem(ItemDisplayProperties::COMPTYPE_ACTION, icon->getId(), activePalette,
+                                        perSidePadding, MenuFontDef(nullptr, 2).fontData,
+                                        MenuFontDef(nullptr, 7).fontMag, 2, 60, GridPosition::CORE_JUSTIFY_RIGHT,
+                                        MenuBorder(0));
     factory.addImageToCache(DrawableIcon(icon->getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap4));
 
     // this is global sadly, only viable if i can constrain navigation.
@@ -437,30 +456,60 @@ void setIconStopped(MenuItem *icon)
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
 }
 
+void renderTimer(unsigned int encoderValue, RenderPressMode clicked) {
+
+    // Test manually rendering the timer to see if it can be done smoother..
+    // it didnt really help..
+    Serial.println("Render callback... we own display");
+
+    int xpos = 100;
+    // Render the timer box.. maybe ?
+    TimeStorage ts = menuRunTime.getTime();
+
+    if (ts.minutes == 0 && ts.seconds == 0) {
+        // renderer.giveBackDisplay();
+    } else {
+
+        gfx.drawRect(0, 50, 320, 100, TFT_WHITE);
+        gfx.fillRect(0, 52, 320, 100, TFT_WHITE);
+        gfx.setTextColor(TFT_BLACK);
+
+        xpos += gfx.drawNumber(ts.minutes, xpos, 70, 7);
+        xpos += gfx.drawChar(':', xpos, 70, 7);
+        gfx.drawNumber(ts.seconds, xpos, 70, 7);
+    }
+
+
+}
+
 /**
  * Reset all of the icons back to their original state, reset the selecton color value.
  */
-void resetIcons()
-{
+void resetIcons() {
 
     auto &factory = renderer.getGraphicsPropertiesFactory();
     const Coord iconSize(72, 72);
-    
-    factory.addImageToCache(DrawableIcon(menuWash.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap0, CycleIconsBitmap3));
-    factory.addImageToCache(DrawableIcon(menuSpin.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap1, CycleIconsBitmap3));
+
+    factory.addImageToCache(
+            DrawableIcon(menuWash.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap0, CycleIconsBitmap3));
+    factory.addImageToCache(
+            DrawableIcon(menuSpin.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap1, CycleIconsBitmap3));
     factory.addImageToCache(DrawableIcon(menuDry.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap2));
-    factory.addImageToCache(DrawableIcon(menuSettings.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap3));
+    factory.addImageToCache(
+            DrawableIcon(menuSettings.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap3));
     MenuPadding perSidePadding(3, 3, 3, 3);
 
-    if (stoppedButton != nullptr)
-    {
+    if (stoppedButton != nullptr) {
         MenuPadding buttonPadding(4, 4, 4, 4);
 
-        factory.setDrawingPropertiesForItem(ItemDisplayProperties::COMPTYPE_ACTION, stoppedButton->getId(), darkModeActionPalette, buttonPadding, MenuFontDef(nullptr, 2).fontData, MenuFontDef(nullptr, 7).fontMag, 2, 60, GridPosition::CORE_JUSTIFY_RIGHT, MenuBorder(0));
+        factory.setDrawingPropertiesForItem(ItemDisplayProperties::COMPTYPE_ACTION, stoppedButton->getId(),
+                                            darkModeActionPalette, buttonPadding, MenuFontDef(nullptr, 2).fontData,
+                                            MenuFontDef(nullptr, 7).fontMag, 2, 60, GridPosition::CORE_JUSTIFY_RIGHT,
+                                            MenuBorder(0));
         stoppedButton = nullptr;
     }
 
-    factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0)); 
+    factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0));
 
     // // Rerender entire screen
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();

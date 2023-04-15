@@ -54,7 +54,7 @@ void PicoPlatform::initializePlatform() {
     // screenshot button, active high
     pinMode(EXPANSION1, INPUT_PULLDOWN);
 
-    EEPROM.begin(512);
+    EEPROM.begin(768);
 }
 
 /**

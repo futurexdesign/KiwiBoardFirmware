@@ -34,27 +34,27 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     // Check if the TMC5160 answers back
     TMC5160_Reg::IOIN_Register ioin = {0};
 
-    while (ioin.version != motor->IC_VERSION)
-    {
-        ioin.value = motor->readRegister(TMC5160_Reg::IO_INPUT_OUTPUT);
+    // while (ioin.version != motor->IC_VERSION)
+    // {
+    //     ioin.value = motor->readRegister(TMC5160_Reg::IO_INPUT_OUTPUT);
 
-        if (ioin.value == 0 || ioin.value == 0xFFFFFFFF)
-        {
-            Serial.println("No TMC5160 found.");
-            delay(2000);
-        }
-        else
-        {
-            Serial.println("Found a TMC device.");
-            Serial.print("IC version: 0x");
-            Serial.print(ioin.version, HEX);
-            Serial.print(" (");
-            if (ioin.version == motor->IC_VERSION)
-                Serial.println("TMC5160).");
-            else
-                Serial.println("unknown IC !)");
-        }
-    }
+    //     if (ioin.value == 0 || ioin.value == 0xFFFFFFFF)
+    //     {
+    //         Serial.println("No TMC5160 found.");
+    //         delay(2000);
+    //     }
+    //     else
+    //     {
+    //         Serial.println("Found a TMC device.");
+    //         Serial.print("IC version: 0x");
+    //         Serial.print(ioin.version, HEX);
+    //         Serial.print(" (");
+    //         if (ioin.version == motor->IC_VERSION)
+    //             Serial.println("TMC5160).");
+    //         else
+    //             Serial.println("unknown IC !)");
+    //     }
+    // }
 
     platform->enableMotor(false);
 }
