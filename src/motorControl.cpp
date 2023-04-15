@@ -16,10 +16,10 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     TMC5160::MotorParameters motorParams;
 
     motorParams.globalScaler = globalScaler; // Use Excel file to find correct scaler so that ihold=31 is max desired current
-    motorParams.irun = iRun;         // 31 is max running current, adjust accordingly.
-    motorParams.ihold = 0;         // holding current, 0 enables freewheel
+    motorParams.irun = iRun;                 // 31 is max running current, adjust accordingly.
+    motorParams.ihold = 0;                   // holding current, 0 enables freewheel
 
-   // Library initializes with StealthChop enabled.
+    // Library initializes with StealthChop enabled.
     motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
     motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
 
@@ -32,29 +32,29 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     // TODO, add in coms check back in?
 
     // Check if the TMC5160 answers back
- //   TMC5160_Reg::IOIN_Register ioin = {0};
+    TMC5160_Reg::IOIN_Register ioin = {0};
 
-//    while (ioin.version != motor->IC_VERSION)
-//    {
-//        ioin.value = motor->readRegister(TMC5160_Reg::IO_INPUT_OUTPUT);
-//
-//        if (ioin.value == 0 || ioin.value == 0xFFFFFFFF)
-//        {
-//            Serial.println("No TMC5160 found.");
-//            delay(2000);
-//        }
-//        else
-//        {
-//            Serial.println("Found a TMC device.");
-//            Serial.print("IC version: 0x");
-//            Serial.print(ioin.version, HEX);
-//            Serial.print(" (");
-//            if (ioin.version == motor->IC_VERSION)
-//                Serial.println("TMC5160).");
-//            else
-//                Serial.println("unknown IC !)");
-//        }
-//    }
+    while (ioin.version != motor->IC_VERSION)
+    {
+        ioin.value = motor->readRegister(TMC5160_Reg::IO_INPUT_OUTPUT);
+
+        if (ioin.value == 0 || ioin.value == 0xFFFFFFFF)
+        {
+            Serial.println("No TMC5160 found.");
+            delay(2000);
+        }
+        else
+        {
+            Serial.println("Found a TMC device.");
+            Serial.print("IC version: 0x");
+            Serial.print(ioin.version, HEX);
+            Serial.print(" (");
+            if (ioin.version == motor->IC_VERSION)
+                Serial.println("TMC5160).");
+            else
+                Serial.println("unknown IC !)");
+        }
+    }
 
     platform->enableMotor(false);
 }
@@ -75,7 +75,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
     state.program = programId;
     state.run_start = millis();
     state.isStopping = false;
-    Serial.print("Program: " );
+    Serial.print("Program: ");
     Serial.println(state.program);
 
     if (programId == 0)
@@ -119,7 +119,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
         motor->setAcceleration(currentSettings.spin_amax); // TODO Unit?
-        motor->setMaxSpeed(currentSettings.spin_vmax);      // Full steps per second
+        motor->setMaxSpeed(currentSettings.spin_vmax);     // Full steps per second
 
         state.direction = true;
     }
@@ -262,6 +262,7 @@ unsigned long MotorControl::getSecondsRemaining()
 /**
  * Return the current DriverStatus from the underlying motor control
  */
-TMC5160::DriverStatus MotorControl::getDriverStatus() {
+TMC5160::DriverStatus MotorControl::getDriverStatus()
+{
     return motor->getDriverStatus();
 }

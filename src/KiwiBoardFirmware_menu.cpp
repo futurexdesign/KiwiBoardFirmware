@@ -11,13 +11,14 @@
 #include <tcMenu.h>
 #include "KiwiBoardFirmware_menu.h"
 #include "ThemeDarkModeModern.h"
+#include "picoPlatform.h"
 
 // Global variable declarations
 const  ConnectorLocalInfo applicationInfo = { "KiwiBoard", "a44877f0-b65e-4c52-9701-aefa48df02b9" };
 ArduinoEEPROMAbstraction glArduinoEeprom(&EEPROM);
 TFT_eSPI gfx;
 TfteSpiDrawable gfxDrawable(&gfx, 100);
-GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
+GraphicsDeviceRenderer renderer(100, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
@@ -66,21 +67,19 @@ AnalogMenuItem menuwash_duration(&minfowash_duration, 4, &menuwash_cycle_time, I
 const SubMenuInfo minfowashSettings = { "Wash", 8, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackwashSettings(&minfowashSettings, &menuwash_duration, INFO_LOCATION_PGM);
 SubMenuItem menuwashSettings(&minfowashSettings, &menuBackwashSettings, &menuSpinSettings, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfoBacklight1 = { "Backlight1", 36, 80, 7, backlightChange, 1, 1, "" };
-AnalogMenuItem menuBacklight1(&minfoBacklight1, 3, &menuwashSettings, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfoBacklight = { "Backlight", 36, 84, 7, backlightChange, 1, 1, "" };
+AnalogMenuItem menuBacklight(&minfoBacklight, 3, &menuwashSettings, INFO_LOCATION_PGM);
 const SubMenuInfo minfoSettings = { "Settings", 7, 0xffff, 0, NO_CALLBACK };
-BackMenuItem menuBackSettings(&minfoSettings, &menuBacklight1, INFO_LOCATION_PGM);
+BackMenuItem menuBackSettings(&minfoSettings, &menuBacklight, INFO_LOCATION_PGM);
 SubMenuItem menuSettings(&minfoSettings, &menuBackSettings, NULL, INFO_LOCATION_PGM);
+const AnyMenuInfo minfoDry = { "Dry", 38, 0xffff, 0, dry };
+ActionMenuItem menuDry(&minfoDry, &menuSettings, INFO_LOCATION_PGM);
+const AnyMenuInfo minfoSpin = { "Spin", 37, 0xffff, 0, spin };
+ActionMenuItem menuSpin(&minfoSpin, &menuDry, INFO_LOCATION_PGM);
+AnyMenuInfo minfoWash = { "Wash", 2, 0xffff, 0, wash };
+ActionMenuItem menuWash(&minfoWash, &menuSpin, INFO_LOCATION_RAM);
 RENDERING_CALLBACK_NAME_INVOKE(fnRunTimeRtCall, timeItemRenderFn, "RunTime", -1, NO_CALLBACK)
-TimeFormattedMenuItem menuRunTime(fnRunTimeRtCall, TimeStorage(0, 0, 0, 0), 6, (MultiEditWireType)6, &menuSettings);
-AnyMenuInfo minfoRunStop = { "Run - Stop", 2, 0xffff, 0, run };
-ActionMenuItem menuRunStop(&minfoRunStop, &menuRunTime, INFO_LOCATION_RAM);
-const char enumStrProgram_0[] = "Wash";
-const char enumStrProgram_1[] = "Spin";
-const char enumStrProgram_2[] = "Dry";
-const char* const enumStrProgram[]  = { enumStrProgram_0, enumStrProgram_1, enumStrProgram_2 };
-const EnumMenuInfo minfoProgram = { "Program", 1, 6, 2, progChange, enumStrProgram };
-EnumMenuItem menuProgram(&minfoProgram, 0, &menuRunStop, INFO_LOCATION_PGM);
+TimeFormattedMenuItem menuRunTime(fnRunTimeRtCall, TimeStorage(0, 0, 0, 0), 6, (MultiEditWireType)6, &menuWash);
 
 void setupMenu() {
     // First we set up eeprom and authentication (if needed).
@@ -96,9 +95,9 @@ void setupMenu() {
     gfx.setRotation(3);
     renderer.setUpdatesPerSecond(10);
     switches.init(internalDigitalIo(), SWITCHES_NO_POLLING, true);
-    menuMgr.initForEncoder(&renderer, &menuProgram, ENC1, ENC2, BUTTON);
+    menuMgr.initForEncoder(&renderer, &menuRunTime, ENC1, ENC2, BUTTON);
     renderer.setTitleMode(BaseGraphicalRenderer::TITLE_ALWAYS);
     renderer.setUseSliderForAnalog(false);
-    installDarkModeModernTheme(renderer, MenuFontDef(nullptr, 1), MenuFontDef(nullptr, 1), true);
+    installDarkModeModernTheme(renderer, MenuFontDef(nullptr, 4), MenuFontDef(nullptr, 4), true);
 }
 

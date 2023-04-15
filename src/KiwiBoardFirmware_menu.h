@@ -19,7 +19,6 @@
 #include <IoAbstraction.h>
 #include <EepromItemStorage.h>
 #include <ArduinoEEPROMAbstraction.h>
-#include "picoPlatform.h"
 
 // variables we declare that you may need to access
 extern const PROGMEM ConnectorLocalInfo applicationInfo;
@@ -56,16 +55,17 @@ extern AnalogMenuItem menuwash_cycle_time;
 extern AnalogMenuItem menuwash_duration;
 extern BackMenuItem menuBackwashSettings;
 extern SubMenuItem menuwashSettings;
-extern AnalogMenuItem menuBacklight1;
+extern AnalogMenuItem menuBacklight;
 extern BackMenuItem menuBackSettings;
 extern SubMenuItem menuSettings;
+extern ActionMenuItem menuDry;
+extern ActionMenuItem menuSpin;
+extern AnyMenuInfo minfoWash;
+extern ActionMenuItem menuWash;
 extern TimeFormattedMenuItem menuRunTime;
-extern AnyMenuInfo minfoRunStop;
-extern ActionMenuItem menuRunStop;
-extern EnumMenuItem menuProgram;
 
 // Provide a wrapper to get hold of the root menu item and export setupMenu
-inline MenuItem& rootMenuItem() { return menuProgram; }
+inline MenuItem& rootMenuItem() { return menuRunTime; }
 void setupMenu();
 
 // Callback functions must always include CALLBACK_FUNCTION after the return type
@@ -73,9 +73,10 @@ void setupMenu();
 
 void CALLBACK_FUNCTION GlobalScalerChanged(int id);
 void CALLBACK_FUNCTION backlightChange(int id);
+void CALLBACK_FUNCTION dry(int id);
 void CALLBACK_FUNCTION iRunChanged(int id);
-void CALLBACK_FUNCTION progChange(int id);
-void CALLBACK_FUNCTION run(int id);
 void CALLBACK_FUNCTION settings_changed(int id);
+void CALLBACK_FUNCTION spin(int id);
+void CALLBACK_FUNCTION wash(int id);
 
 #endif // MENU_GENERATED_CODE_H

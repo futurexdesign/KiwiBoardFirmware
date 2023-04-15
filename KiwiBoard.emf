@@ -5,19 +5,14 @@
   "items": [
     {
       "parentId": 0,
-      "type": "enumItem",
-      "defaultValue": "0",
+      "type": "textItem",
+      "defaultValue": "",
       "item": {
-        "enumEntries": [
-          "Wash",
-          "Spin",
-          "Dry"
-        ],
-        "name": "Program",
-        "variableName": "Program",
-        "id": 1,
-        "eepromAddress": 6,
-        "functionName": "@progChange",
+        "textLength": 0,
+        "itemType": "TIME_DURATION_SECONDS",
+        "name": "RunTime",
+        "id": 6,
+        "eepromAddress": -1,
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -28,10 +23,11 @@
       "parentId": 0,
       "type": "actionMenu",
       "item": {
-        "name": "Run - Stop",
+        "name": "Wash",
+        "variableName": "Wash",
         "id": 2,
         "eepromAddress": -1,
-        "functionName": "@run",
+        "functionName": "@wash",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -40,14 +36,28 @@
     },
     {
       "parentId": 0,
-      "type": "textItem",
-      "defaultValue": "",
+      "type": "actionMenu",
       "item": {
-        "textLength": 0,
-        "itemType": "TIME_DURATION_SECONDS",
-        "name": "RunTime",
-        "id": 6,
+        "name": "Spin",
+        "variableName": "Spin",
+        "id": 37,
         "eepromAddress": -1,
+        "functionName": "@spin",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 0,
+      "type": "actionMenu",
+      "item": {
+        "name": "Dry",
+        "variableName": "Dry",
+        "id": 38,
+        "eepromAddress": -1,
+        "functionName": "@dry",
         "readOnly": false,
         "localOnly": false,
         "visible": true,

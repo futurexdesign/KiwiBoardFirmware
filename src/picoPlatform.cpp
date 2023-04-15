@@ -42,6 +42,7 @@ void PicoPlatform::initializePlatform() {
 
     pinMode(LCD_BACKLIGHT, OUTPUT);
     analogWrite(LCD_BACKLIGHT, 125);
+    
     //Setup SPI0 for the TFT
     SPI.setCS(LCD_CS);
     SPI.setRX(LCD_MISO);

@@ -9,6 +9,9 @@
 #ifndef KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
 #define KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
 
+const color_t darkModeActionPalette[] = {RGB(255, 255, 255), RGB(0,0,0), RGB(20,45,110), RGB(255,255,255)};
+
+
 // Callback Definitions.
 /**
  * Primary UI related task.  When called, we update menu items that we want tcMenu to redraw, or otherwise update.
@@ -36,5 +39,16 @@ void scheduleTasks();
  * etc, anything we can't do from the designer ui.
  */
 void setMenuOptions();
+
+/**
+ * Launch the requested program.
+*/
+void run(int program);
+
+
+void setIconStopped(MenuItem* icon); 
+
+void resetIcons(); 
+
 
 #endif //KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
