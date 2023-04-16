@@ -20,6 +20,7 @@ const color_t darkModeActionPalette[] = {RGB(255, 255, 255), RGB(0,0,0), RGB(20,
 void ui_tick();
 void motorErrorDialog(TMC5160::DriverStatus);
 void titleBarClick(int id);
+void stoppedCallback(int pgm);
 
 /**
  * Task to be called periodically that will check to see if the screen capture pin is pulled high.
@@ -43,7 +44,7 @@ void setMenuOptions();
 /**
  * Launch the requested program.
 */
-void run(int program);
+void run(int program, MenuItem *icon);
 
 
 void setIconStopped(MenuItem* icon); 

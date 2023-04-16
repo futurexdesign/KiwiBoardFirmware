@@ -106,6 +106,15 @@ bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
 }
 
+/**
+ * This is called by TaskManager periodically.   It's purpose is to perform any actions
+ * required by the hardware platform.
+ *
+ * In this case it needs to do the following tasks
+ * - Ensure that if the heater is on, the fan is always on.  This should never get out of sync, but just in case...
+ * - Check for the expiration of a cooldown period, and switch fan off.
+ * - Perform the board heartbeat flash. (at least in dev firmware)
+ */
 void PicoPlatform::exec() {
 
     // Check heater and fan correlation.. this could probably just be a PIO
@@ -120,6 +129,10 @@ void PicoPlatform::exec() {
             in_cooldown = false;
         }
     }
+
+    // Heartbeat
+    led = !led;
+    digitalWrite(LED_BUILTIN, led);
 }
 
 void PicoPlatform::startCooldown() {

@@ -20,7 +20,8 @@ PicoPlatform *platform;
 MotorControl *motorControl;
 MenuChangeObserver *observer;
 
-bool led = false;
+// Error occured, in HALT state.
+bool HALT = false;
 
 // Track if we need to save setting changes.
 bool settingsChanged = false;
@@ -93,6 +94,14 @@ void loop() {
     taskManager.runLoop();
 }
 
+void stoppedCallback(int pgm) {
+
+    // Stopped happened.
+
+    resetIcons();
+    observer->resetConstraint();
+}
+
 /**
  * Perform UI updates when the task manager calls us.
  *
@@ -102,9 +111,6 @@ void loop() {
  */
 void ui_tick() {
 
-    led = !led;
-
-    digitalWrite(LED_BUILTIN, led);
     // Update the remaining time...
     if (motorControl->isRunning()) {
         unsigned long secRemaining = motorControl->getSecondsRemaining();
@@ -126,9 +132,6 @@ void ui_tick() {
             ts.minutes = 0;
             menuRunTime.setTime(ts);
             menuRunTime.changeOccurred(true);
-
-            resetIcons();
-            observer->resetConstraint();
         }
     }
 
@@ -140,6 +143,17 @@ void ui_tick() {
         // launch error dialog
         motorErrorDialog(curStatus);
     }
+
+    // Draw the Logo, Centered in the title bar, but only on the main screen
+    // If currentSubMenu is null, we are on the "home" screen... Show the centered icon.
+    if (menuMgr.getCurrentSubMenu() == nullptr) {
+        auto drawable = renderer.getDeviceDrawable();
+        drawable->setColors(RGB(255, 255, 255), RGB(0,0,0));
+        drawable->startDraw();
+        drawable->drawXBitmap(Coord(135,0), Coord(50, 50), KiwiLogoWidIcon0);
+        drawable->endDraw();
+    }
+
 }
 
 /**
@@ -186,20 +200,6 @@ void motorErrorDialog(TMC5160::DriverStatus status) {
 }
 
 /**
- * Screen Capture Task
- */
-void screenCaptureTask() {
-
-#ifdef SCREENCAP
-    // If EXPANSION1 is high, trigger the screen capture routine.
-    if (digitalRead(EXPANSION1) == HIGH)
-    {
-        screenServer();
-    }
-#endif
-}
-
-/**
  * Show version dialog.
  *
  * @param id
@@ -220,23 +220,15 @@ void titleBarClick(int id) {
 }
 
 void CALLBACK_FUNCTION wash(int id) {
-    run(0);
-    setIconStopped(&menuWash);
-    observer->constrainToStopButton(&menuWash);
+    run(0, &menuWash);
 }
 
 void CALLBACK_FUNCTION spin(int id) {
-    run(1);
-    setIconStopped(&menuSpin);
-    observer->constrainToStopButton(&menuSpin);
-
+    run(1, &menuSpin);
 }
 
 void CALLBACK_FUNCTION dry(int id) {
-    run(2);
-    setIconStopped(&menuDry);
-    observer->constrainToStopButton(&menuDry);
-
+    run(2, &menuDry);
 }
 
 /**
@@ -245,16 +237,21 @@ void CALLBACK_FUNCTION dry(int id) {
  * If we are running, force a stop of the current program
  * If we are stopped, trigger a start of the selected program
  */
-void run(int program) {
+void run(int program, MenuItem *icon) {
 
     if (motorControl->isRunning()) {
         motorControl->stopMotion();
     } else {
         motorControl->startProgram(program, getSettings());
+
+        setIconStopped(icon);
+        observer->constrainToStopButton(icon);
     }
 }
 
 void CALLBACK_FUNCTION settings_changed(int id) {
+    // TODO Look for actual changes in the setting values rather than just saving settings any time
+    // someone went to the settings menu.... Or add a save button?
 
     settingsChanged = true;
 }
@@ -306,7 +303,8 @@ void CALLBACK_FUNCTION backlightChange(int id) {
 }
 
 /**
- * Commit settings to eeprom if they have changed
+ * Commit settings to eeprom if they have changed.  Try not to thrash the EEPROM with too many
+ * calls.
  */
 void commit_if_needed() {
     Serial.println("checking if settings changed.");
@@ -318,6 +316,16 @@ void commit_if_needed() {
     }
 }
 
+/**
+ * Schedule of the background tasks that need to run in the main task loop.   The TaskManager
+ * will then trigger these once their timers expire.
+ *
+ * - Platform Background tasks
+ * - Motor Control Task
+ * - UI Update task
+ * - Setting Saving task
+ * - Optional Screen Capture task.
+ */
 void scheduleTasks() {
     // Setup tasks
     // Platform task is relatively low priority
@@ -342,7 +350,12 @@ void scheduleTasks() {
 }
 
 /**
- * Setup all the UI options required to make NewUI work
+ * Setup all the UI options required to make NewUI work.
+ *
+ * - Swap out the wash/spin/dry/settings menu options for a grid row of icons.
+ * - Set the palette for the timer row (which is inverse of everything else.
+ * - Set the palette for the grid row.
+ * - Set the palette for the settings menus (Maybe this should jus tbe the default palette... override just the home screen entries
  */
 void setMenuOptions() {
 
@@ -388,7 +401,7 @@ void setMenuOptions() {
     // // here is how we completely redefine the drawing of a specific item, you can also define for submenu or default
     // color_t specialPalette[] { RGB(255, 255, 255), RGB(255, 0, 0), RGB(0, 0, 0), RGB(0, 0, 255) };
 
-    // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers 
+    // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers
     factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(),
                                          settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 10, 36,
@@ -411,20 +424,16 @@ void setMenuOptions() {
                                          MenuPadding(4), nullptr, 4, 10, 36,
                                          GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
 
-    appTitleMenuItem.setTitleOverridePgm("KiwiCleaner");
+    // Blank the title bar so that we can render the logo overtop of it. (Save a draw call to blank the rectangle)
+    appTitleMenuItem.setTitleOverridePgm("");
+
+    // Black on white cursor
     factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0));
 
-    // title widget... try one..
-    renderer.setFirstWidget(&KiwiLogoWidget);
-
+    // Home the user to the wash menu option
     menuMgr.activateMenuItem(&menuWash);
 
-    // this didn't work
-    // const Coord logoSize(50, 50);
-    // factory.addImageToCache(DrawableIcon(0, logoSize, DrawableIcon::ICON_XBITMAP, KiwiLogoWidIcon0));
-    // factory.addGridPosition(getMenuItemById(0), GridPosition(GridPosition::DRAW_AS_ICON_ONLY,
-    //                                                          GridPosition::JUSTIFY_CENTER_NO_VALUE, 1, 1, 0, 50));
-
+    // We changed out icons and whatnot, so we need to force a redraw
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
 }
 
@@ -513,4 +522,18 @@ void resetIcons() {
 
     // // Rerender entire screen
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
+}
+
+/**
+ * Screen Capture Task
+ */
+void screenCaptureTask() {
+
+#ifdef SCREENCAP
+    // If EXPANSION1 is high, trigger the screen capture routine.
+    if (digitalRead(EXPANSION1) == HIGH)
+    {
+        screenServer();
+    }
+#endif
 }

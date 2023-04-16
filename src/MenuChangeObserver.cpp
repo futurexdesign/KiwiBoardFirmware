@@ -16,7 +16,8 @@ void MenuChangeObserver::activeItemHasChanged(MenuItem *newActive) {
             menuManager->activateMenuItem(stopIcon);
         }
     }
-    // todo.. block out the title bar.. but only when on the home screen?
+    // todo.. block out the title bar... This likely wont be needed, as tcMenu 3.2 will fix the encoder issue
+    // that makes it possible to even get to the title bar on the homescreen.
     if (newActive == timerRow ) {
         Serial.println("Tried to move to TimerRow... Move back to LeftConstraint ");
         menuManager->activateMenuItem(leftConstraint);
@@ -29,8 +30,6 @@ MenuChangeObserver::MenuChangeObserver(MenuManager *menuManager, MenuItem *timer
         : menuManager(menuManager), timerRow(timerRow), leftConstraint(leftConstraint) {
 
 }
-
-
 
 
 void MenuChangeObserver::structureHasChanged() {

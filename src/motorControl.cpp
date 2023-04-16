@@ -84,6 +84,8 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
         state.run_end = state.run_start + (currentSettings.wash_duration * 60000);
         state.isRunning = true;
 
+
+
         // TODO Need to work out RPM to speed when calling the TMC driver.
         // TODO originally had cycle time configurable for wash, switch config option to number of rotations.
 
@@ -93,6 +95,9 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
         // should probably just switch back to positioning mode.
 
         platform->enableMotor(true);
+
+        // Reset Motion Controller start position to 0.
+        motor->setCurrentPosition(0, true);
 
         // ramp definition
         motor->setRampMode(TMC5160::POSITIONING_MODE);
@@ -164,6 +169,10 @@ void MotorControl::exec()
             state.isStopping = false;
 
             platform->enableMotor(false);
+
+            if (stoppedCallback != nullptr) {
+                stoppedCallback(state.program);
+            }
         }
         else
         {
@@ -173,12 +182,17 @@ void MotorControl::exec()
                 platform->enableMotor(false);
                 state.isStopping = false;
                 state.isRunning = false;
+
+                if (stoppedCallback != nullptr) {
+                    stoppedCallback(state.program);
+                }
             }
             else
             {
                 state.stopping_cnt++;
             }
         }
+
         if (state.program == 2)
         {
             // trigger cooldown
@@ -189,15 +203,17 @@ void MotorControl::exec()
     // If past end time...
     if (millis() >= state.run_end)
     {
-        motor->setMaxSpeed(0);
-        platform->enableMotor(false);
 
-        if (state.program == 2)
-        {
-            // If we finished a dry cycle, trigger cooldown
-            platform->startCooldown();
-        }
-        state.isRunning = false;
+        stopMotion();
+//        motor->setMaxSpeed(0);
+//        platform->enableMotor(false);
+//
+//        if (state.program == 2)
+//        {
+//            // If we finished a dry cycle, trigger cooldown
+//            platform->startCooldown();
+//        }
+//        state.isRunning = false;
 
         // Advance to next program in the run schedule?
     }
@@ -265,4 +281,9 @@ unsigned long MotorControl::getSecondsRemaining()
 TMC5160::DriverStatus MotorControl::getDriverStatus()
 {
     return motor->getDriverStatus();
+}
+
+void MotorControl::setStoppedCallback(MotorCallbackFn stopFn) {
+
+    stoppedCallback = stopFn;
 }

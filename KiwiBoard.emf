@@ -409,7 +409,7 @@
         "divisor": 1,
         "unitName": "min",
         "step": 1,
-        "name": "Time",
+        "name": "Cool Time",
         "variableName": "cooldownTime",
         "id": 19,
         "eepromAddress": 21,

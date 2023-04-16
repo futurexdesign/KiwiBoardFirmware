@@ -98,6 +98,7 @@ class PicoPlatform : public Executable {
         bool motor_enabled = false;
         bool heater_enabled = false;
         bool fan_enabled = false;
+        bool led = false; // used for heartbeat.
 
         unsigned long cooldown_start; // when did a cooldown start.
         unsigned long cooldown_end; // when should a cooldown stop.

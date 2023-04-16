@@ -9,6 +9,9 @@
 #include "picoPlatform.h"
 #include "settings.h"
 
+/** The definition of a callback from MotorControl object */
+typedef void (*MotorCallbackFn)(int program);
+
 class MotorControl : public Executable
 {
 
@@ -42,6 +45,11 @@ class MotorControl : public Executable
          */
         bool isRunning();
 
+        /**
+         * Set the callback to be called when the motor is stopped
+         */
+         void setStoppedCallback(MotorCallbackFn stopFn);
+
 
         /**
          * Called by task loop.  This is what will process any motor control tasks necessary to execute programs.
@@ -72,6 +80,9 @@ class MotorControl : public Executable
         TMC5160_SPI *motor;
         PicoPlatform* platform;
         MOTOR_STATE state;
+
+        // Callback function to call when motor stops
+        MotorCallbackFn stoppedCallback;
 
 
 
