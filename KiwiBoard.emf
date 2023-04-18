@@ -185,7 +185,7 @@
       "item": {
         "digitsAllowed": 4,
         "decimalPlaces": 0,
-        "negativeAllowed": true,
+        "negativeAllowed": false,
         "name": "VMAX",
         "variableName": "washVMAX",
         "id": 26,
@@ -221,7 +221,7 @@
       "item": {
         "digitsAllowed": 4,
         "decimalPlaces": 0,
-        "negativeAllowed": true,
+        "negativeAllowed": false,
         "name": "washPos",
         "variableName": "washPos",
         "id": 27,
@@ -633,12 +633,12 @@
       },
       {
         "name": "ITEM_FONT",
-        "latestValue": "avl:u8g2_font_fub11_tf,1",
+        "latestValue": "num:,4",
         "subsystem": "THEME"
       },
       {
         "name": "TITLE_FONT",
-        "latestValue": "avl:u8g2_font_luRS10_tr,1",
+        "latestValue": "num:,4",
         "subsystem": "THEME"
       },
       {
@@ -663,7 +663,7 @@
       },
       {
         "name": "NEED_EDITING_ICONS",
-        "latestValue": "true",
+        "latestValue": "false",
         "subsystem": "THEME"
       }
     ],

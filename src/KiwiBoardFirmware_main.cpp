@@ -51,6 +51,8 @@ void setup() {
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
                                        menuIRun.getIntValueIncludingOffset());
 
+    motorControl->setStoppedCallback(stoppedCallback);
+
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
     gfx.setRotation(3);
@@ -91,7 +93,10 @@ void setup() {
  * Main loop, we are delegating to the Task library to trigger all of our main processing, so pump the event bus
  */
 void loop() {
-    taskManager.runLoop();
+    // If a TMC error happened... No further processing.
+    if (!HALT) {
+        taskManager.runLoop();
+    }
 }
 
 void stoppedCallback(int pgm) {
@@ -160,9 +165,16 @@ void ui_tick() {
  * An error has been found.  Present a dialog to the user so they know what happened.
  */
 void motorErrorDialog(TMC5160::DriverStatus status) {
+    HALT = true;
     Serial.println("Stepper drive error detected, reports not ok");
     Serial.print("Current drive status: ");
     Serial.println(status);
+
+    // Terminate Platform Services
+    // Turn off motor and heater, leave fan running
+    platform->enableMotor(false);
+    platform->enableHeater(false);
+    platform->enableFan(true); // die with the fan running
 
     const char error[] PROGMEM = "Stepper Drive Error";
     char msg[50]; // 200 character string
@@ -404,30 +416,31 @@ void setMenuOptions() {
     // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers
     factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(),
                                          settingsMenuPalette,
-                                         MenuPadding(4), nullptr, 4, 10, 36,
-                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+                                         MenuPadding(4), nullptr, 4, 2, 36,
+                                         GridPosition::JUSTIFY_TITLE_LEFT_VALUE_RIGHT, MenuBorder(0));
 
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuWash.getId(), settingsMenuPalette,
-                                         MenuPadding(4), nullptr, 4, 10, 36,
-                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuwashSettings.getId(), settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 2, 36,
+                                         GridPosition::JUSTIFY_TITLE_LEFT_VALUE_RIGHT, MenuBorder(0));
 
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSpin.getId(), settingsMenuPalette,
-                                         MenuPadding(4), nullptr, 4, 10, 36,
-                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSpinSettings.getId(), settingsMenuPalette,
+                                         MenuPadding(4), nullptr, 4, 2, 36,
+                                         GridPosition::JUSTIFY_TITLE_LEFT_VALUE_RIGHT, MenuBorder(0));
 
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuDry.getId(), settingsMenuPalette,
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuDrySettings.getId(), settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 10, 36,
-                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(0));
 
     factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuAdvanced.getId(),
                                          settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 10, 36,
-                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(2));
+                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(0));
 
     // Blank the title bar so that we can render the logo overtop of it. (Save a draw call to blank the rectangle)
     appTitleMenuItem.setTitleOverridePgm("");
 
     // Black on white cursor
+//    factory.setSelectedColors(RGB(255, 0, 0), RGB(0, 255, 0));
     factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0));
 
     // Home the user to the wash menu option
@@ -438,28 +451,25 @@ void setMenuOptions() {
 }
 
 void setIconStopped(MenuItem *icon) {
-
-    // Hijack the renderer ... hopefully..
     // renderer.takeOverDisplay(renderTimer);
 
     stoppedButton = icon; // Keep track of this so we can reset it later.
 
     const Coord iconSize(72, 72);
 
-    // See what we can do.. can we make it green background?
-    MenuPadding perSidePadding(4, 4, 4, 4);
+    MenuPadding perSidePadding(0, 0, 0, 0);
 
     auto &factory = renderer.getGraphicsPropertiesFactory();
+
     const color_t activePalette[] = {RGB(255, 0, 0), RGB(255, 255, 255), RGB(0, 0, 255), RGB(255, 0, 0)};
     factory.setDrawingPropertiesForItem(ItemDisplayProperties::COMPTYPE_ACTION, icon->getId(), activePalette,
                                         perSidePadding, MenuFontDef(nullptr, 2).fontData,
-                                        MenuFontDef(nullptr, 7).fontMag, 2, 60, GridPosition::CORE_JUSTIFY_RIGHT,
+                                        MenuFontDef(nullptr, 7).fontMag, 0, 60, GridPosition::CORE_JUSTIFY_RIGHT,
                                         MenuBorder(0));
+
     factory.addImageToCache(DrawableIcon(icon->getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap4));
 
-    // this is global sadly, only viable if i can constrain navigation.
     factory.setSelectedColors(RGB(255, 255, 255), RGB(255, 0, 0));
-
     icon->setChanged(true);
 
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
@@ -469,7 +479,7 @@ void renderTimer(unsigned int encoderValue, RenderPressMode clicked) {
 
     // Test manually rendering the timer to see if it can be done smoother..
     // it didnt really help..
-    Serial.println("Render callback... we own display");
+    //Serial.println("Render callback... we own display");
 
     int xpos = 100;
     // Render the timer box.. maybe ?
@@ -487,8 +497,6 @@ void renderTimer(unsigned int encoderValue, RenderPressMode clicked) {
         xpos += gfx.drawChar(':', xpos, 70, 7);
         gfx.drawNumber(ts.seconds, xpos, 70, 7);
     }
-
-
 }
 
 /**
