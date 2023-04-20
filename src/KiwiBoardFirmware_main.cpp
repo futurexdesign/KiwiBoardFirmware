@@ -411,7 +411,7 @@ void setMenuOptions() {
 
     // Settings for the Settings menu
     // // here is how we completely redefine the drawing of a specific item, you can also define for submenu or default
-    // color_t specialPalette[] { RGB(255, 255, 255), RGB(255, 0, 0), RGB(0, 0, 0), RGB(0, 0, 255) };
+    //color_t specialPalette[] { RGB(0, 255, 0), RGB(255, 0, 0), RGB(70, 70, 70), RGB(0, 0, 255) };
 
     // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers
     factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(),

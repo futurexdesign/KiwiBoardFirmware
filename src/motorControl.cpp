@@ -26,6 +26,7 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     // Disable the transition to SpreadCycle, we don't need accuracy, prefer StealthChop
     motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
 
+
     // TODO Setup any stealth-chop settings we may want changed from defaults.
     motor->stop(); // Ensure the controller is initialized with the motor stopped
 
@@ -101,6 +102,9 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
 
         // ramp definition
         motor->setRampMode(TMC5160::POSITIONING_MODE);
+
+
+
         motor->setMaxSpeed(currentSettings.wash_vmax);
         // REgister for VMAX is expressed in uSteps / t
         // t is 1.398101 at 12mhz
@@ -108,6 +112,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
 
         // Rotate the configured number of full steps
         state.washSteps = currentSettings.wash_pos;
+        // target position is set using FULL-STEPS (motor library multiplies by uSteps internally)..
         motor->setTargetPosition(state.washSteps); // 200 full steps per revolution
 
         state.direction = false;

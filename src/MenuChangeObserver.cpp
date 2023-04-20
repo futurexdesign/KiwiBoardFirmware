@@ -38,6 +38,8 @@ Serial.println("menu tree structure changed");
 
 bool MenuChangeObserver::menuEditStarting(MenuItem* item)  {
 Serial.println("Editing started");
+
+
 return true; // allow editing to start
 }
 

@@ -13,6 +13,9 @@ const color_t darkModeActionPalette[] = {RGB(255, 255, 255), RGB(0,0,0), RGB(20,
 
 #define ACTION_BORDER_WIDTH 0
 
+using namespace tcgfx;
+
+
 void installDarkModeModernTheme(GraphicsDeviceRenderer& bgr, const MenuFontDef& itemFont, const MenuFontDef& titleFont, bool needEditingIcons) {
     // here we get a reference to the drawable and then set the dimensions.
     auto* rootDrawable = bgr.getDeviceDrawable();
@@ -42,8 +45,12 @@ void installDarkModeModernTheme(GraphicsDeviceRenderer& bgr, const MenuFontDef& 
     factory.setDrawingPropertiesDefault(ItemDisplayProperties::COMPTYPE_ACTION, darkModeActionPalette, allPadding, itemFont.fontData, itemFont.fontMag, 2, itemHeight,
                                         GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(ACTION_BORDER_WIDTH));
 
+
+    // near the top somewhere
+    factory.setEditCursorMode(CURSOR_MODE_UNDERLINE, RGB(255,0,0), RGB(255,0,0));
+
     // and lastly, whenever changing the configuration, we must refresh.
-    tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
+   ConfigurableItemDisplayPropertiesFactory::refreshCache();
 }
 
 #endif //THEME_DARK_MODE

@@ -24,7 +24,7 @@ void PicoPlatform::initializePlatform() {
     pinMode(HEATER_CTL, OUTPUT_8MA);
     digitalWrite(HEATER_CTL, LOW);
 
-    pinMode(FAN_CTL, OUTPUT_8MA);
+    pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
     // Turn on the LED
@@ -64,7 +64,7 @@ void PicoPlatform::initializePlatform() {
 void PicoPlatform::enableHeater(bool activate) {
 
     digitalWrite(HEATER_CTL, activate);
-    heater_enabled = true;
+    heater_enabled = activate;
 
     // If heater has been turned on, the fan MUST turn on.  
     // If we are turning the heater off, the cooldown logic will turn off the fan 
@@ -119,12 +119,19 @@ void PicoPlatform::exec() {
 
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
+        Serial.println("Force fan on, heater on...");
         // This honestly should never happen...
         enableFan(true);
     }
 
     if (in_cooldown) {
+        Serial.println("in cooldown");
+        Serial.print("- cooldown_end = " ) ;
+        Serial.println(cooldown_end);
+        Serial.print("- millis.. " );
+        Serial.println(millis());
         if (millis() >= cooldown_end) {
+            Serial.println("cooldown over, turn off fan");
             enableFan(false);
             in_cooldown = false;
         }
