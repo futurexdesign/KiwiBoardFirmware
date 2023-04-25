@@ -5,8 +5,7 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
-void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun)
-{
+void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun) {
     this->platform = curPlatform; // Set the current platform.
 
     // start motor controller. wants to be enabled to talk to it..
@@ -69,8 +68,7 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
  * @param programId
  * @param currentSettings
  */
-void MotorControl::startProgram(int programId, SETTINGS currentSettings)
-{
+void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
     // A start has been requested
     state.program = programId;
@@ -79,21 +77,11 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
     Serial.print("Program: ");
     Serial.println(state.program);
 
-    if (programId == 0)
-    {
+    if (programId == 0) {
         // wash cycle..
         state.run_end = state.run_start + (currentSettings.wash_duration * 60000);
         state.isRunning = true;
 
-
-
-        // TODO Need to work out RPM to speed when calling the TMC driver.
-        // TODO originally had cycle time configurable for wash, switch config option to number of rotations.
-
-        // Initial prototype had agitate happening in velocity mode, which
-        // has some downsides on the acceleration curves, and creates a floor on
-        // how fast the cycle time can be (need enough time for it to actually accel/decel
-        // should probably just switch back to positioning mode.
 
         platform->enableMotor(true);
 
@@ -103,22 +91,24 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
         // ramp definition
         motor->setRampMode(TMC5160::POSITIONING_MODE);
 
+//        motor->setMaxSpeed(currentSettings.wash_vmax);
+        // Set speed in full steps per second.
+        motor->setMaxSpeed(rpmToVmax(currentSettings.wash_speed));
 
-
-        motor->setMaxSpeed(currentSettings.wash_vmax);
-        // REgister for VMAX is expressed in uSteps / t
+        // Register for VMAX is expressed in uSteps / t
         // t is 1.398101 at 12mhz
+
+        // Given
         motor->setAcceleration(currentSettings.wash_amax);
 
         // Rotate the configured number of full steps
-        state.washSteps = currentSettings.wash_pos;
+        // 200 full steps per rotation
+        state.washSteps = currentSettings.washRotations * 200;
         // target position is set using FULL-STEPS (motor library multiplies by uSteps internally)..
-        motor->setTargetPosition(state.washSteps); // 200 full steps per revolution
+        motor->setTargetPosition(state.washSteps);
 
         state.direction = false;
-    }
-    else if (programId == 1)
-    {
+    } else if (programId == 1) {
         // spin-off..
         state.run_end = state.run_start + (currentSettings.spin_duration * 60000);
         state.isRunning = true;
@@ -128,13 +118,13 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
-        motor->setAcceleration(currentSettings.spin_amax); // TODO Unit?
-        motor->setMaxSpeed(currentSettings.spin_vmax);     // Full steps per second
+
+        motor->setAcceleration(currentSettings.spin_amax);
+
+        motor->setMaxSpeed(rpmToVmax(currentSettings.spin_speed));     // Full steps per second
 
         state.direction = true;
-    }
-    else
-    {
+    } else {
         // dry... which is basically a spin-off with heat
         // spin-off..
         state.run_end = state.run_start + (currentSettings.dry_duration * 60000);
@@ -148,28 +138,24 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings)
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
-        motor->setAcceleration(1000); // TODO Unit?
-        motor->setMaxSpeed(350);      // Full steps per second
+        motor->setAcceleration(600);
+        motor->setMaxSpeed(rpmToVmax(currentSettings.dry_speed));
 
         state.direction = true;
     }
 }
 
-void MotorControl::exec()
-{
+void MotorControl::exec() {
     // This is our tick for motor control, Check to see if we are running, need to change directions, or stop
 
-    if (!state.isRunning)
-    {
+    if (!state.isRunning) {
         return;
     }
 
     // Check to see if we are stopping
-    if (state.isStopping)
-    {
+    if (state.isStopping) {
         // Check to see if motion terminated, so we can disable the motion controller.
-        if (motor->getCurrentSpeed() == 0)
-        {
+        if (motor->getCurrentSpeed() == 0) {
             state.isRunning = false;
             state.isStopping = false;
 
@@ -178,12 +164,9 @@ void MotorControl::exec()
             if (stoppedCallback != nullptr) {
                 stoppedCallback(state.program);
             }
-        }
-        else
-        {
+        } else {
             // Give it 10 10 ticks to finish before stopping it manually
-            if (state.stopping_cnt == 10)
-            {
+            if (state.stopping_cnt == 10) {
                 platform->enableMotor(false);
                 state.isStopping = false;
                 state.isRunning = false;
@@ -191,23 +174,19 @@ void MotorControl::exec()
                 if (stoppedCallback != nullptr) {
                     stoppedCallback(state.program);
                 }
-            }
-            else
-            {
+            } else {
                 state.stopping_cnt++;
             }
         }
 
-        if (state.program == 2)
-        {
+        if (state.program == 2) {
             // trigger cooldown
             platform->startCooldown();
         }
     }
 
     // If past end time...
-    if (millis() >= state.run_end)
-    {
+    if (millis() >= state.run_end) {
 
         stopMotion();
 //        motor->setMaxSpeed(0);
@@ -221,9 +200,7 @@ void MotorControl::exec()
 //        state.isRunning = false;
 
         // Advance to next program in the run schedule?
-    }
-    else if (state.program == 0)
-    {
+    } else if (state.program == 0) {
         Serial.println("Check motion");
         Serial.print("Target Pos: ");
         Serial.println(motor->getTargetPosition());
@@ -231,8 +208,7 @@ void MotorControl::exec()
         Serial.println(motor->getCurrentPosition());
 
         // check if we need to change directions yet
-        if (motor->getTargetPosition() == motor->getCurrentPosition())
-        {
+        if (motor->getTargetPosition() == motor->getCurrentPosition()) {
             Serial.println("Reverse");
             // reverse directions
             state.direction = !state.direction;
@@ -241,23 +217,18 @@ void MotorControl::exec()
     }
 }
 
-int MotorControl::getRunningProgram()
-{
+int MotorControl::getRunningProgram() {
     return state.program;
 }
 
-bool MotorControl::isRunning()
-{
+bool MotorControl::isRunning() {
     return state.isRunning;
 }
 
-void MotorControl::stopMotion()
-{
+void MotorControl::stopMotion() {
 
-    if (state.isRunning)
-    {
-        if (getRunningProgram() != 0)
-        {
+    if (state.isRunning) {
+        if (getRunningProgram() != 0) {
             // if we are in a wash cycle... let the current motion finish, otherwise, set speed to zero
             // and let the motion controller ramp down.
             motor->setMaxSpeed(0);
@@ -268,12 +239,10 @@ void MotorControl::stopMotion()
     }
 }
 
-unsigned long MotorControl::getSecondsRemaining()
-{
+unsigned long MotorControl::getSecondsRemaining() {
 
     unsigned long rtn = 0;
-    if (state.isRunning)
-    {
+    if (state.isRunning) {
         rtn = (state.run_end - millis()) / 1000;
     }
 
@@ -283,12 +252,30 @@ unsigned long MotorControl::getSecondsRemaining()
 /**
  * Return the current DriverStatus from the underlying motor control
  */
-TMC5160::DriverStatus MotorControl::getDriverStatus()
-{
+TMC5160::DriverStatus MotorControl::getDriverStatus() {
     return motor->getDriverStatus();
 }
 
 void MotorControl::setStoppedCallback(MotorCallbackFn stopFn) {
 
     stoppedCallback = stopFn;
+}
+
+/**
+* Convert the provided RPM to a VMAX value that the library understands, which is rot/sec * 200
+*
+*
+* Process:
+* - Convert RPM to Rot/Sec (/60)
+* - vmax =  deg/sec *200
+*
+* @param rpm
+* @return
+*/
+float MotorControl::rpmToVmax(float rpm) {
+
+    // Fullstep rotation per second..
+    float vmax = (rpm / 60.0f) * 200;
+
+    return vmax;
 }

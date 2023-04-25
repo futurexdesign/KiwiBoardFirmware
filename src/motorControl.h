@@ -84,6 +84,23 @@ class MotorControl : public Executable
         // Callback function to call when motor stops
         MotorCallbackFn stoppedCallback;
 
+        const float MICROSTEP_PER_REV = 51200.0;
+        const float TIME_CONST = 1.398101;
+
+        /**
+         * Convert the provided RPM to a VMAX value that the library understands, which is rot/sec * 200
+         *
+         *
+         * Process:
+         * - Convert RPM to Rot/Sec (/60)
+         * - vmax =  deg/sec *200
+
+         *
+         * @param rpm
+         * @return
+         */
+        float rpmToVmax(float rpm);
+
 
 
 };

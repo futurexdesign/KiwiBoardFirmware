@@ -11,7 +11,6 @@
 #include <tcMenu.h>
 #include "KiwiBoardFirmware_menu.h"
 #include "ThemeDarkModeModern.h"
-#include "picoPlatform.h"
 
 // Global variable declarations
 const  ConnectorLocalInfo applicationInfo = { "KiwiBoard", "a44877f0-b65e-4c52-9701-aefa48df02b9" };
@@ -22,7 +21,7 @@ GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
-AnalogMenuItem menuIRun(&minfoIRun, 31, NULL, INFO_LOCATION_PGM);
+AnalogMenuItem menuIRun(&minfoIRun, 17, NULL, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoGlobalScaler = { "Global Scaler", 32, 75, 255, GlobalScalerChanged, 0, 1, "" };
 AnalogMenuItem menuGlobalScaler(&minfoGlobalScaler, 148, &menuIRun, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfoInvertEncoder = { "Invert Encoder", 34, 79, 1, NO_CALLBACK, NAMING_YES_NO };
@@ -41,29 +40,23 @@ AnalogMenuItem menudry_duration(&minfodry_duration, 4, &menudry_speed, INFO_LOCA
 const SubMenuInfo minfoDrySettings = { "Dry", 15, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCATION_PGM);
 SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuAdvanced, INFO_LOCATION_PGM);
-RENDERING_CALLBACK_NAME_INVOKE(fnspinAMAXRtCall, largeNumItemRenderFn, "AMAX", 67, NO_CALLBACK)
-EditableLargeNumberMenuItem menuspinAMAX(fnspinAMAXRtCall, LargeFixedNumber(4, 0, 1000U, 0U, false), 29, false, NULL);
-RENDERING_CALLBACK_NAME_INVOKE(fnspinVMAXRtCall, largeNumItemRenderFn, "VMAX", 59, NO_CALLBACK)
-EditableLargeNumberMenuItem menuspinVMAX(fnspinVMAXRtCall, LargeFixedNumber(4, 0, 600U, 0U, false), 28, false, &menuspinAMAX);
-const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 100, settings_changed, 50, 1, "rpm" };
-AnalogMenuItem menuspin_speed(&minfospin_speed, 20, &menuspinVMAX, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfospinAMAX = { "Accel", 40, 88, 2000, settings_changed, 500, 1, "" };
+AnalogMenuItem menuspinAMAX(&minfospinAMAX, 375, NULL, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 125, settings_changed, 50, 1, "rpm" };
+AnalogMenuItem menuspin_speed(&minfospin_speed, 50, &menuspinAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospin_duration = { "Time", 13, 12, 10, settings_changed, 1, 1, "min" };
 AnalogMenuItem menuspin_duration(&minfospin_duration, 0, &menuspin_speed, INFO_LOCATION_PGM);
 const SubMenuInfo minfoSpinSettings = { "Spin", 12, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackSpinSettings(&minfoSpinSettings, &menuspin_duration, INFO_LOCATION_PGM);
 SubMenuItem menuSpinSettings(&minfoSpinSettings, &menuBackSpinSettings, &menuDrySettings, INFO_LOCATION_PGM);
-RENDERING_CALLBACK_NAME_INVOKE(fnwashPosRtCall, largeNumItemRenderFn, "washPos", 51, NO_CALLBACK)
-EditableLargeNumberMenuItem menuwashPos(fnwashPosRtCall, LargeFixedNumber(4, 0, 600U, 0U, false), 27, false, NULL);
-RENDERING_CALLBACK_NAME_INVOKE(fnwashAMAXRtCall, largeNumItemRenderFn, "AMAX", 35, NO_CALLBACK)
-EditableLargeNumberMenuItem menuwashAMAX(fnwashAMAXRtCall, LargeFixedNumber(4, 0, 1000U, 0U, false), 25, false, &menuwashPos);
-RENDERING_CALLBACK_NAME_INVOKE(fnwashVMAXRtCall, largeNumItemRenderFn, "VMAX", 43, NO_CALLBACK)
-EditableLargeNumberMenuItem menuwashVMAX(fnwashVMAXRtCall, LargeFixedNumber(4, 0, 600U, 0U, false), 26, false, &menuwashAMAX);
-const AnalogMenuInfo minfowash_speed = { "Speed", 11, 10, 100, settings_changed, 50, 1, "rpm" };
-AnalogMenuItem menuwash_speed(&minfowash_speed, 20, &menuwashVMAX, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfowash_cycle_time = { "Cycle", 10, 8, 59, settings_changed, 1, 1, "sec" };
-AnalogMenuItem menuwash_cycle_time(&minfowash_cycle_time, 2, &menuwash_speed, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfowashAMAX = { "Accel", 41, 90, 2000, settings_changed, 500, 1, "" };
+AnalogMenuItem menuwashAMAX(&minfowashAMAX, 400, NULL, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfowash_speed = { "Speed", 11, 10, 225, settings_changed, 50, 1, "rpm" };
+AnalogMenuItem menuwash_speed(&minfowash_speed, 175, &menuwashAMAX, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfoRotations = { "Rotations", 39, 86, 10, settings_changed, 1, 1, "" };
+AnalogMenuItem menuRotations(&minfoRotations, 1, &menuwash_speed, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfowash_duration = { "Time", 9, 4, 9, settings_changed, 1, 1, "min" };
-AnalogMenuItem menuwash_duration(&minfowash_duration, 4, &menuwash_cycle_time, INFO_LOCATION_PGM);
+AnalogMenuItem menuwash_duration(&minfowash_duration, 4, &menuRotations, INFO_LOCATION_PGM);
 const SubMenuInfo minfowashSettings = { "Wash", 8, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackwashSettings(&minfowashSettings, &menuwash_duration, INFO_LOCATION_PGM);
 SubMenuItem menuwashSettings(&minfowashSettings, &menuBackwashSettings, &menuSpinSettings, INFO_LOCATION_PGM);
@@ -86,8 +79,10 @@ void setupMenu() {
     setSizeBasedEEPROMStorageEnabled(true);
     menuMgr.setEepromRef(&glArduinoEeprom);
     // Now add any readonly, non-remote and visible flags.
-    menuwash_speed.setStep(5);
+    menuspinAMAX.setStep(25);
     menuspin_speed.setStep(5);
+    menuwashAMAX.setStep(25);
+    menuwash_speed.setStep(5);
     menudry_speed.setStep(5);
 
     // Code generated by plugins.
