@@ -14,12 +14,10 @@ struct SETTINGS
     int wash_duration; 
     int wash_speed;
     int washRotations;
-    int wash_vmax;
     int wash_amax;
 
     int spin_duration;
     int spin_speed;
-    int spin_vmax;
     int spin_amax;
 
     int dry_duration;

@@ -16,11 +16,14 @@
 #include "icons.h"
 #include "MenuChangeObserver.h"
 
+// Version Number
+const char VERSION_NUM[] PROGMEM = "1.00-Unic";
+
 PicoPlatform *platform;
 MotorControl *motorControl;
 MenuChangeObserver *observer;
 
-// Error occured, in HALT state.
+// Error occurred, in HALT state.
 bool HALT = false;
 
 // Track if we need to save setting changes.
@@ -46,12 +49,7 @@ void setup() {
 
     platform = new PicoPlatform();
     platform->initializePlatform();
-    // bring up motor control with configured values
-    motorControl = new MotorControl();
-    motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
-                                       menuIRun.getIntValueIncludingOffset());
 
-    motorControl->setStoppedCallback(stoppedCallback);
 
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
@@ -67,7 +65,15 @@ void setup() {
 
     menuRunTime.setReadOnly(true);
     setupMenu();
-    menuMgr.load(0xfadf, NULL);
+    menuMgr.load(0xfadf, nullptr);
+
+    // bring up motor control with configured values
+    motorControl = new MotorControl();
+    motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
+                                       menuIRun.getIntValueIncludingOffset(),
+                                       menustealthTransition.getIntValueIncludingOffset());
+
+    motorControl->setStoppedCallback(stoppedCallback);
 
     // restore backlight setting
     PicoPlatform::setBacklight(menuBacklight.getIntValueIncludingOffset());
@@ -81,6 +87,8 @@ void setup() {
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
+
+    menuVersion.setTextValue(VERSION_NUM,true);
 
     setMenuOptions();
 
@@ -153,9 +161,9 @@ void ui_tick() {
     // If currentSubMenu is null, we are on the "home" screen... Show the centered icon.
     if (menuMgr.getCurrentSubMenu() == nullptr) {
         auto drawable = renderer.getDeviceDrawable();
-        drawable->setColors(RGB(255, 255, 255), RGB(0,0,0));
+        drawable->setColors(RGB(255, 255, 255), RGB(0, 0, 0));
         drawable->startDraw();
-        drawable->drawXBitmap(Coord(135,0), Coord(50, 50), KiwiLogoWidIcon0);
+        drawable->drawXBitmap(Coord(135, 0), Coord(50, 50), KiwiLogoWidIcon0);
         drawable->endDraw();
     }
 
@@ -282,7 +290,8 @@ void CALLBACK_FUNCTION GlobalScalerChanged(int id) {
     delay(100); // wait for everything to settle...
     // init
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
-                                       menuIRun.getIntValueIncludingOffset());
+                                       menuIRun.getIntValueIncludingOffset(),
+                                       menustealthTransition.getIntValueIncludingOffset());
 
     settingsChanged = true;
 }
@@ -301,7 +310,8 @@ void CALLBACK_FUNCTION iRunChanged(int id) {
     delay(100); // wait for everything to settle...
     // init
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
-                                       menuIRun.getIntValueIncludingOffset());
+                                       menuIRun.getIntValueIncludingOffset(),
+                                       menustealthTransition.getIntValueIncludingOffset());
 
     settingsChanged = true;
 }
@@ -312,6 +322,18 @@ void CALLBACK_FUNCTION iRunChanged(int id) {
 void CALLBACK_FUNCTION backlightChange(int id) {
     int newVal = menuBacklight.getIntValueIncludingOffset();
     PicoPlatform::setBacklight(newVal);
+}
+
+/**
+ * Callback for when the user changes the PWM Transition time.   The motor controller needs to be stopped, and
+ * reconfigured.
+ *
+ * @param id
+ */
+void CALLBACK_FUNCTION stealthTransitionChanged(int id) {
+
+    motorControl->setPwmTransitionTime(menustealthTransition.getIntValueIncludingOffset());
+    settingsChanged = true;
 }
 
 /**
@@ -419,15 +441,18 @@ void setMenuOptions() {
                                          MenuPadding(4), nullptr, 4, 2, 36,
                                          GridPosition::JUSTIFY_TITLE_LEFT_VALUE_RIGHT, MenuBorder(0));
 
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuwashSettings.getId(), settingsMenuPalette,
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuwashSettings.getId(),
+                                         settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 2, 36,
                                          GridPosition::JUSTIFY_TITLE_LEFT_VALUE_RIGHT, MenuBorder(0));
 
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSpinSettings.getId(), settingsMenuPalette,
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSpinSettings.getId(),
+                                         settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 2, 36,
                                          GridPosition::JUSTIFY_TITLE_LEFT_VALUE_RIGHT, MenuBorder(0));
 
-    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuDrySettings.getId(), settingsMenuPalette,
+    factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuDrySettings.getId(),
+                                         settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 10, 36,
                                          GridPosition::JUSTIFY_CENTER_WITH_VALUE, MenuBorder(0));
 

@@ -162,7 +162,7 @@
       "type": "analogItem",
       "defaultValue": "175",
       "item": {
-        "maxValue": 225,
+        "maxValue": 350,
         "offset": 50,
         "divisor": 1,
         "unitName": "rpm",
@@ -240,7 +240,7 @@
       "type": "analogItem",
       "defaultValue": "50",
       "item": {
-        "maxValue": 125,
+        "maxValue": 350,
         "offset": 50,
         "divisor": 1,
         "unitName": "rpm",
@@ -440,6 +440,44 @@
         "eepromAddress": 77,
         "functionName": "@iRunChanged",
         "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
+      "type": "analogItem",
+      "defaultValue": "1",
+      "item": {
+        "maxValue": 2000,
+        "offset": 0,
+        "divisor": 1,
+        "unitName": "",
+        "step": 5,
+        "name": "PWM Threshold ",
+        "variableName": "stealthTransition",
+        "id": 42,
+        "eepromAddress": 92,
+        "functionName": "@stealthTransitionChanged",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
+      "type": "textItem",
+      "defaultValue": "1.00",
+      "item": {
+        "textLength": 10,
+        "itemType": "PLAIN_TEXT",
+        "name": "Version",
+        "variableName": "Version",
+        "id": 43,
+        "eepromAddress": -1,
+        "readOnly": true,
         "localOnly": false,
         "visible": true,
         "staticDataInRAM": false

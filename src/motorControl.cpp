@@ -5,7 +5,7 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
-void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun) {
+void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, uint16_t transition) {
     this->platform = curPlatform; // Set the current platform.
 
     // start motor controller. wants to be enabled to talk to it..
@@ -18,18 +18,18 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     motorParams.irun = iRun;                 // 31 is max running current, adjust accordingly.
     motorParams.ihold = 0;                   // holding current, 0 enables freewheel
 
+
     // Library initializes with StealthChop enabled.
     motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
     motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
 
     // Disable the transition to SpreadCycle, we don't need accuracy, prefer StealthChop
-    motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
+   // motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
+    motor->writeRegister(TMC5160_Reg::TPWMTHRS, transition);
 
 
-    // TODO Setup any stealth-chop settings we may want changed from defaults.
+
     motor->stop(); // Ensure the controller is initialized with the motor stopped
-
-    // TODO, add in coms check back in?
 
     // Check if the TMC5160 answers back
     TMC5160_Reg::IOIN_Register ioin = {0};
@@ -91,7 +91,6 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         // ramp definition
         motor->setRampMode(TMC5160::POSITIONING_MODE);
 
-//        motor->setMaxSpeed(currentSettings.wash_vmax);
         // Set speed in full steps per second.
         motor->setMaxSpeed(rpmToVmax(currentSettings.wash_speed));
 
@@ -115,6 +114,8 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
         // Enable drive, active low
         platform->enableMotor(true);
+        motor->setCurrentPosition(0, true); // Reset position
+        motor->setTargetPosition(0);
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
@@ -132,6 +133,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
         // Enable drive, active low
         platform->enableMotor(true);
+        motor->setCurrentPosition(0, true);
 
         // Enable heat and fan
         platform->enableHeater(true);
@@ -167,6 +169,9 @@ void MotorControl::exec() {
         } else {
             // Give it 10 10 ticks to finish before stopping it manually
             if (state.stopping_cnt == 10) {
+                motor->setCurrentPosition(0, true); // Reset position
+                motor->setTargetPosition(0); // Reset position
+
                 platform->enableMotor(false);
                 state.isStopping = false;
                 state.isRunning = false;
@@ -189,17 +194,7 @@ void MotorControl::exec() {
     if (millis() >= state.run_end) {
 
         stopMotion();
-//        motor->setMaxSpeed(0);
-//        platform->enableMotor(false);
-//
-//        if (state.program == 2)
-//        {
-//            // If we finished a dry cycle, trigger cooldown
-//            platform->startCooldown();
-//        }
-//        state.isRunning = false;
 
-        // Advance to next program in the run schedule?
     } else if (state.program == 0) {
         Serial.println("Check motion");
         Serial.print("Target Pos: ");
@@ -278,4 +273,14 @@ float MotorControl::rpmToVmax(float rpm) {
     float vmax = (rpm / 60.0f) * 200;
 
     return vmax;
+}
+
+void MotorControl::setPwmTransitionTime(int transitionTime) {
+
+    // Disable TMC, Enable, Wait to stabalize, and set the value
+    platform->enableMotor(false);
+    delay(10);
+    platform->enableMotor(true);
+    delay(10);
+    motor->writeRegister(TMC5160_Reg::TPWMTHRS, transitionTime);
 }
