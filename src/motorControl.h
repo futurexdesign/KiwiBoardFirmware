@@ -9,6 +9,9 @@
 #include "picoPlatform.h"
 #include "settings.h"
 
+/** The definition of a callback from MotorControl object */
+typedef void (*MotorCallbackFn)(int program);
+
 class MotorControl : public Executable
 {
 
@@ -17,7 +20,7 @@ class MotorControl : public Executable
         /**
          * Initialize the TMC5160 motion controller running on the provided platform.
          */
-        void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun);
+        void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, uint16_t transition);
 
         void stopMotion();
         void startProgram(int programId, SETTINGS currentSettings);
@@ -41,6 +44,19 @@ class MotorControl : public Executable
          * @return True if a cycle is active
          */
         bool isRunning();
+
+        /**
+         * Set the callback to be called when the motor is stopped
+         */
+         void setStoppedCallback(MotorCallbackFn stopFn);
+
+         /**
+          * Set the value of TPWMTHRS, the transition velocity between StealthChop and SpreadCycle.  This
+          * is set in terms of TSTEP (time per micro-step)
+          *
+          * @param transitionTime
+          */
+         void setPwmTransitionTime(int transitionTime);
 
 
         /**
@@ -72,6 +88,26 @@ class MotorControl : public Executable
         TMC5160_SPI *motor;
         PicoPlatform* platform;
         MOTOR_STATE state;
+
+        // Callback function to call when motor stops
+        MotorCallbackFn stoppedCallback;
+
+        const float MICROSTEP_PER_REV = 51200.0;
+        const float TIME_CONST = 1.398101;
+
+        /**
+         * Convert the provided RPM to a VMAX value that the library understands, which is rot/sec * 200
+         *
+         *
+         * Process:
+         * - Convert RPM to Rot/Sec (/60)
+         * - vmax =  deg/sec *200
+
+         *
+         * @param rpm
+         * @return
+         */
+        float rpmToVmax(float rpm);
 
 
 

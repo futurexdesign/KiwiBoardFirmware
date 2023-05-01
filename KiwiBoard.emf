@@ -5,41 +5,6 @@
   "items": [
     {
       "parentId": 0,
-      "type": "enumItem",
-      "defaultValue": "0",
-      "item": {
-        "enumEntries": [
-          "Wash",
-          "Spin",
-          "Dry"
-        ],
-        "name": "Program",
-        "variableName": "Program",
-        "id": 1,
-        "eepromAddress": 6,
-        "functionName": "@progChange",
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 0,
-      "type": "actionMenu",
-      "item": {
-        "name": "Run - Stop",
-        "id": 2,
-        "eepromAddress": -1,
-        "functionName": "@run",
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": true
-      }
-    },
-    {
-      "parentId": 0,
       "type": "textItem",
       "defaultValue": "",
       "item": {
@@ -56,6 +21,51 @@
     },
     {
       "parentId": 0,
+      "type": "actionMenu",
+      "item": {
+        "name": "Wash",
+        "variableName": "Wash",
+        "id": 2,
+        "eepromAddress": -1,
+        "functionName": "@wash",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": true
+      }
+    },
+    {
+      "parentId": 0,
+      "type": "actionMenu",
+      "item": {
+        "name": "Spin",
+        "variableName": "Spin",
+        "id": 37,
+        "eepromAddress": -1,
+        "functionName": "@spin",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 0,
+      "type": "actionMenu",
+      "item": {
+        "name": "Dry",
+        "variableName": "Dry",
+        "id": 38,
+        "eepromAddress": -1,
+        "functionName": "@dry",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 0,
       "type": "subMenu",
       "item": {
         "secured": false,
@@ -63,6 +73,27 @@
         "variableName": "Settings",
         "id": 7,
         "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 7,
+      "type": "analogItem",
+      "defaultValue": "3",
+      "item": {
+        "maxValue": 7,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "",
+        "step": 1,
+        "name": "Backlight",
+        "variableName": "Backlight",
+        "id": 36,
+        "eepromAddress": 84,
+        "functionName": "@backlightChange",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -108,17 +139,17 @@
     {
       "parentId": 8,
       "type": "analogItem",
-      "defaultValue": "2",
+      "defaultValue": "1",
       "item": {
-        "maxValue": 59,
+        "maxValue": 10,
         "offset": 1,
         "divisor": 1,
-        "unitName": "sec",
+        "unitName": "",
         "step": 1,
-        "name": "Cycle",
-        "variableName": "wash_cycle_time",
-        "id": 10,
-        "eepromAddress": 8,
+        "name": "Rotations",
+        "variableName": "Rotations",
+        "id": 39,
+        "eepromAddress": 86,
         "functionName": "@settings_changed",
         "readOnly": false,
         "localOnly": false,
@@ -129,9 +160,9 @@
     {
       "parentId": 8,
       "type": "analogItem",
-      "defaultValue": "20",
+      "defaultValue": "175",
       "item": {
-        "maxValue": 100,
+        "maxValue": 350,
         "offset": 50,
         "divisor": 1,
         "unitName": "rpm",
@@ -149,52 +180,19 @@
     },
     {
       "parentId": 8,
-      "type": "largeNumItem",
-      "defaultValue": "600",
+      "type": "analogItem",
+      "defaultValue": "400",
       "item": {
-        "digitsAllowed": 4,
-        "decimalPlaces": 0,
-        "negativeAllowed": true,
-        "name": "VMAX",
-        "variableName": "washVMAX",
-        "id": 26,
-        "eepromAddress": 43,
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 8,
-      "type": "largeNumItem",
-      "defaultValue": "1000",
-      "item": {
-        "digitsAllowed": 4,
-        "decimalPlaces": 0,
-        "negativeAllowed": false,
-        "name": "AMAX",
+        "maxValue": 2000,
+        "offset": 500,
+        "divisor": 1,
+        "unitName": "",
+        "step": 25,
+        "name": "Accel",
         "variableName": "washAMAX",
-        "id": 25,
-        "eepromAddress": 35,
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 8,
-      "type": "largeNumItem",
-      "defaultValue": "600",
-      "item": {
-        "digitsAllowed": 4,
-        "decimalPlaces": 0,
-        "negativeAllowed": true,
-        "name": "washPos",
-        "variableName": "washPos",
-        "id": 27,
-        "eepromAddress": 51,
+        "id": 41,
+        "eepromAddress": 90,
+        "functionName": "@settings_changed",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -240,9 +238,9 @@
     {
       "parentId": 12,
       "type": "analogItem",
-      "defaultValue": "20",
+      "defaultValue": "50",
       "item": {
-        "maxValue": 100,
+        "maxValue": 350,
         "offset": 50,
         "divisor": 1,
         "unitName": "rpm",
@@ -260,34 +258,19 @@
     },
     {
       "parentId": 12,
-      "type": "largeNumItem",
-      "defaultValue": "600",
+      "type": "analogItem",
+      "defaultValue": "375",
       "item": {
-        "digitsAllowed": 4,
-        "decimalPlaces": 0,
-        "negativeAllowed": false,
-        "name": "VMAX",
-        "variableName": "spinVMAX",
-        "id": 28,
-        "eepromAddress": 59,
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 12,
-      "type": "largeNumItem",
-      "defaultValue": "1000",
-      "item": {
-        "digitsAllowed": 4,
-        "decimalPlaces": 0,
-        "negativeAllowed": false,
-        "name": "AMAX",
+        "maxValue": 2000,
+        "offset": 500,
+        "divisor": 1,
+        "unitName": "",
+        "step": 25,
+        "name": "Accel",
         "variableName": "spinAMAX",
-        "id": 29,
-        "eepromAddress": 67,
+        "id": 40,
+        "eepromAddress": 88,
+        "functionName": "@settings_changed",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -378,7 +361,7 @@
         "divisor": 1,
         "unitName": "min",
         "step": 1,
-        "name": "Time",
+        "name": "Cool Time",
         "variableName": "cooldownTime",
         "id": 19,
         "eepromAddress": 21,
@@ -398,27 +381,6 @@
         "variableName": "Advanced",
         "id": 30,
         "eepromAddress": -1,
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 30,
-      "type": "analogItem",
-      "defaultValue": "3",
-      "item": {
-        "maxValue": 7,
-        "offset": 1,
-        "divisor": 1,
-        "unitName": "",
-        "step": 1,
-        "name": "Backlight",
-        "variableName": "Backlight",
-        "id": 35,
-        "eepromAddress": 80,
-        "functionName": "@backlightChange",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -465,7 +427,7 @@
     {
       "parentId": 30,
       "type": "analogItem",
-      "defaultValue": "31",
+      "defaultValue": "17",
       "item": {
         "maxValue": 31,
         "offset": 0,
@@ -482,17 +444,55 @@
         "visible": true,
         "staticDataInRAM": false
       }
+    },
+    {
+      "parentId": 30,
+      "type": "analogItem",
+      "defaultValue": "1",
+      "item": {
+        "maxValue": 2000,
+        "offset": 0,
+        "divisor": 1,
+        "unitName": "",
+        "step": 5,
+        "name": "PWM Threshold ",
+        "variableName": "stealthTransition",
+        "id": 42,
+        "eepromAddress": 92,
+        "functionName": "@stealthTransitionChanged",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
+      "type": "textItem",
+      "defaultValue": "1.00",
+      "item": {
+        "textLength": 10,
+        "itemType": "PLAIN_TEXT",
+        "name": "Version",
+        "variableName": "Version",
+        "id": 43,
+        "eepromAddress": -1,
+        "readOnly": true,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
     }
   ],
   "codeOptions": {
     "embeddedPlatform": "ARDUINO32",
-    "lastDisplayUuid": "8646497b-1427-415f-8020-1260a1fef57d",
+    "lastDisplayUuid": "e6342680-6fab-4d1b-ac08-ce8dbfc0974c",
     "lastInputUuid": "6dd87e7d-e751-4912-a70d-91793b1d3d87",
     "lastRemoteUuid": "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb",
     "lastRemoteUuids": [
       "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb"
     ],
-    "lastThemeUuid": "0dd60ceb-7e0f-46e2-8d40-b264eb3aa7e0",
+    "lastThemeUuid": "e3d447ef-a620-47fa-9a3c-012665b30bdf",
     "applicationUUID": "a44877f0-b65e-4c52-9701-aefa48df02b9",
     "applicationName": "KiwiBoard",
     "lastProperties": [
@@ -502,13 +502,13 @@
         "subsystem": "DISPLAY"
       },
       {
-        "name": "DISPLAY_TYPE",
-        "latestValue": "U8G2_SH1107_PIMORONI_128X128_F_HW_I2C",
+        "name": "DISPLAY_ROTATION",
+        "latestValue": "3",
         "subsystem": "DISPLAY"
       },
       {
-        "name": "DISPLAY_CONFIG",
-        "latestValue": "",
+        "name": "DOUBLE_BUFFER_ROWS",
+        "latestValue": "100",
         "subsystem": "DISPLAY"
       },
       {
@@ -517,13 +517,63 @@
         "subsystem": "DISPLAY"
       },
       {
-        "name": "YIELDING_WIRE_CB",
+        "name": "TOUCH_SEPARATOR",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_SCREEN_REQUIRED",
         "latestValue": "false",
         "subsystem": "DISPLAY"
       },
       {
-        "name": "USE_UTF8_SUPPORT",
+        "name": "TOUCH_CALIB_WIDTH",
+        "latestValue": "240",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TOUCH_CALIB_HEIGHT",
+        "latestValue": "320",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TOUCH_USE_RAW_TFT_FUNCTION",
+        "latestValue": "true",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "ORIENTATION_SEPARATOR",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_SWAP_XY",
         "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_X_INVERTED",
+        "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_Y_INVERTED",
+        "latestValue": "false",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "CALIB_SEPARATOR",
+        "latestValue": "",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_SCREEN_CALIBRATE",
+        "latestValue": "true",
+        "subsystem": "DISPLAY"
+      },
+      {
+        "name": "TFT_TOUCH_CALIBRATION_STORAGE_LOC",
+        "latestValue": "400",
         "subsystem": "DISPLAY"
       },
       {
@@ -573,22 +623,17 @@
       },
       {
         "name": "ITEM_FONT",
-        "latestValue": "avl:u8g2_font_fub11_tf,1",
+        "latestValue": "num:,4",
         "subsystem": "THEME"
       },
       {
         "name": "TITLE_FONT",
-        "latestValue": "avl:u8g2_font_luRS10_tr,1",
+        "latestValue": "num:,4",
         "subsystem": "THEME"
       },
       {
-        "name": "TITLE_HEADER_PADDING",
-        "latestValue": "2",
-        "subsystem": "THEME"
-      },
-      {
-        "name": "TITLE_TO_ITEM_SPACING",
-        "latestValue": "2",
+        "name": "BORDER_FOR_ACTIONS",
+        "latestValue": "0",
         "subsystem": "THEME"
       },
       {
@@ -598,6 +643,16 @@
       },
       {
         "name": "USE_TC_UNICODE",
+        "latestValue": "false",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "USE_SLIDER_ANALOG",
+        "latestValue": "false",
+        "subsystem": "THEME"
+      },
+      {
+        "name": "NEED_EDITING_ICONS",
         "latestValue": "false",
         "subsystem": "THEME"
       }

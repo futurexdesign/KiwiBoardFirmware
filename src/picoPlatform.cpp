@@ -3,7 +3,6 @@
 */
 #include <Arduino.h>
 #include <SPI.h>
-#include <Wire.h>
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
@@ -25,10 +24,9 @@ void PicoPlatform::initializePlatform() {
     pinMode(HEATER_CTL, OUTPUT_8MA);
     digitalWrite(HEATER_CTL, LOW);
 
-    pinMode(FAN_CTL, OUTPUT_8MA);
+    pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
-    // Remap  IO to the correct pins for i2c0
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
@@ -42,7 +40,21 @@ void PicoPlatform::initializePlatform() {
     // start SPI with hardware chip select disabled (TMC library handles this). 
     SPI1.begin(false);
 
-    EEPROM.begin(512);
+    pinMode(LCD_BACKLIGHT, OUTPUT);
+    analogWrite(LCD_BACKLIGHT, 125);
+    
+    //Setup SPI0 for the TFT
+    SPI.setCS(LCD_CS);
+    SPI.setRX(LCD_MISO);
+    SPI.setTX(LCD_MOSI);
+    SPI.setSCK(LCD_SCK);
+    SPI.begin(false);
+
+
+    // screenshot button, active high
+    pinMode(EXPANSION1, INPUT_PULLDOWN);
+
+    EEPROM.begin(768);
 }
 
 /**
@@ -52,7 +64,7 @@ void PicoPlatform::initializePlatform() {
 void PicoPlatform::enableHeater(bool activate) {
 
     digitalWrite(HEATER_CTL, activate);
-    heater_enabled = true;
+    heater_enabled = activate;
 
     // If heater has been turned on, the fan MUST turn on.  
     // If we are turning the heater off, the cooldown logic will turn off the fan 
@@ -94,20 +106,40 @@ bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
 }
 
+/**
+ * This is called by TaskManager periodically.   It's purpose is to perform any actions
+ * required by the hardware platform.
+ *
+ * In this case it needs to do the following tasks
+ * - Ensure that if the heater is on, the fan is always on.  This should never get out of sync, but just in case...
+ * - Check for the expiration of a cooldown period, and switch fan off.
+ * - Perform the board heartbeat flash. (at least in dev firmware)
+ */
 void PicoPlatform::exec() {
 
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
+        Serial.println("Force fan on, heater on...");
         // This honestly should never happen...
         enableFan(true);
     }
 
     if (in_cooldown) {
+        Serial.println("in cooldown");
+        Serial.print("- cooldown_end = " ) ;
+        Serial.println(cooldown_end);
+        Serial.print("- millis.. " );
+        Serial.println(millis());
         if (millis() >= cooldown_end) {
+            Serial.println("cooldown over, turn off fan");
             enableFan(false);
             in_cooldown = false;
         }
     }
+
+    // Heartbeat
+    led = !led;
+    digitalWrite(LED_BUILTIN, led);
 }
 
 void PicoPlatform::startCooldown() {
@@ -127,4 +159,12 @@ void PicoPlatform::startCooldown() {
         // shut off fan
         enableFan(false);
     }
+}
+
+void PicoPlatform::setBacklight(int value) {
+
+    // Convert the 1-8 to 0-254
+    int backlight = value * 32 - 1; // 1 = 31 ::  8 = 255;
+    analogWrite(LCD_BACKLIGHT, backlight);
+
 }
