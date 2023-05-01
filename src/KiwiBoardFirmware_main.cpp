@@ -17,7 +17,7 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.00-Unic";
+const char VERSION_NUM[] PROGMEM = "1.00";
 
 PicoPlatform *platform;
 MotorControl *motorControl;
