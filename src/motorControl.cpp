@@ -5,7 +5,7 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
-void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, uint16_t transition) {
+void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
     this->platform = curPlatform; // Set the current platform.
 
     // start motor controller. wants to be enabled to talk to it..
@@ -18,16 +18,22 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     motorParams.irun = iRun;                 // 31 is max running current, adjust accordingly.
     motorParams.ihold = 0;                   // holding current, 0 enables freewheel
 
-
     // Library initializes with StealthChop enabled.
     motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
     motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
 
     // Disable the transition to SpreadCycle, we don't need accuracy, prefer StealthChop
-   // motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
-    motor->writeRegister(TMC5160_Reg::TPWMTHRS, transition);
+    if (stealthChop) {
+        // disable transition to SpreadCycle
+        motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
+    } else {
+        // turn off stealth chop in the gconf register
 
-
+        TMC5160_Reg::GCONF_Register gconf = { 0 };
+        gconf.en_pwm_mode = false;
+        gconf.shaft = TMC5160::NORMAL_MOTOR_DIRECTION;
+        motor->writeRegister(TMC5160_Reg::GCONF, gconf.value);
+    }
 
     motor->stop(); // Ensure the controller is initialized with the motor stopped
 
@@ -93,6 +99,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
         // Set speed in full steps per second.
         motor->setMaxSpeed(rpmToVmax(currentSettings.wash_speed));
+        state.rpm = currentSettings.wash_speed;
 
         // Register for VMAX is expressed in uSteps / t
         // t is 1.398101 at 12mhz
@@ -109,7 +116,8 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         state.direction = false;
     } else if (programId == 1) {
         // spin-off..
-        state.run_end = state.run_start + (currentSettings.spin_duration * 60000);
+        // Spin is configured in seconds... not minutes...
+        state.run_end = state.run_start + (currentSettings.spin_duration * 1000);
         state.isRunning = true;
 
         // Enable drive, active low
@@ -123,6 +131,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         motor->setAcceleration(currentSettings.spin_amax);
 
         motor->setMaxSpeed(rpmToVmax(currentSettings.spin_speed));     // Full steps per second
+        state.rpm = currentSettings.spin_speed;
 
         state.direction = true;
     } else {
@@ -142,6 +151,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         motor->setRampMode(TMC5160::VELOCITY_MODE);
         motor->setAcceleration(600);
         motor->setMaxSpeed(rpmToVmax(currentSettings.dry_speed));
+        state.rpm = currentSettings.dry_speed;
 
         state.direction = true;
     }
@@ -275,12 +285,17 @@ float MotorControl::rpmToVmax(float rpm) {
     return vmax;
 }
 
-void MotorControl::setPwmTransitionTime(int transitionTime) {
 
-    // Disable TMC, Enable, Wait to stabalize, and set the value
-    platform->enableMotor(false);
-    delay(10);
-    platform->enableMotor(true);
-    delay(10);
-    motor->writeRegister(TMC5160_Reg::TPWMTHRS, transitionTime);
+int MotorControl::getMotorSpeed() {
+    return state.rpm;
+}
+
+void MotorControl::overrideMotorSpeed(int speedRPM) {
+
+    state.rpm = speedRPM;
+
+    // reconfigure VMAX? This might cause problems in wash cycle..
+
+    motor->setMaxSpeed(rpmToVmax(speedRPM));
+
 }

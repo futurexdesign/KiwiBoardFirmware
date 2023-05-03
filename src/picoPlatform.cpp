@@ -42,7 +42,7 @@ void PicoPlatform::initializePlatform() {
 
     pinMode(LCD_BACKLIGHT, OUTPUT);
     analogWrite(LCD_BACKLIGHT, 125);
-    
+
     //Setup SPI0 for the TFT
     SPI.setCS(LCD_CS);
     SPI.setRX(LCD_MISO);
@@ -70,6 +70,9 @@ void PicoPlatform::enableHeater(bool activate) {
     // If we are turning the heater off, the cooldown logic will turn off the fan 
     if (activate) {
         enableFan(true);
+        if (in_preheat) {
+            in_preheat = false; // IF a preheat already happened, stop that process
+        }
     }
 }
 
@@ -126,14 +129,21 @@ void PicoPlatform::exec() {
 
     if (in_cooldown) {
         Serial.println("in cooldown");
-        Serial.print("- cooldown_end = " ) ;
+        Serial.print("- cooldown_end = ");
         Serial.println(cooldown_end);
-        Serial.print("- millis.. " );
+        Serial.print("- millis.. ");
         Serial.println(millis());
         if (millis() >= cooldown_end) {
             Serial.println("cooldown over, turn off fan");
             enableFan(false);
             in_cooldown = false;
+        }
+    }
+
+    // Check for preheat ending..
+    if (in_preheat) {
+        if (millis() >= preheat_end) {
+            startCooldown();
         }
     }
 
@@ -148,6 +158,7 @@ void PicoPlatform::startCooldown() {
 
     // turn off the heat
     enableHeater(false);
+    in_preheat = false;
 
     if (settings.fanCooldown) {
         // cooldown enabled, calculate the fan end time, mark start time.  ::tick will handle turning fan off
@@ -167,4 +178,16 @@ void PicoPlatform::setBacklight(int value) {
     int backlight = value * 32 - 1; // 1 = 31 ::  8 = 255;
     analogWrite(LCD_BACKLIGHT, backlight);
 
+}
+
+void PicoPlatform::startPreheat() {
+    SETTINGS settings = getSettings();
+
+    // turn on the heat
+    enableHeater(true);
+
+    // preheat enabled,  calculate the preheat end time, mark start time.  ::tick will handle finishing preheat
+    preheat_start = millis();
+    preheat_end = preheat_start + (settings.preheatTime * 60000);
+    in_preheat = true;
 }

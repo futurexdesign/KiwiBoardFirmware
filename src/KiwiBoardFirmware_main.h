@@ -5,6 +5,7 @@
 */
 
 #include <TMC5160.h>
+#include "EncoderShim.h"
 
 #ifndef KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
 #define KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
@@ -51,7 +52,8 @@ void setIconStopped(MenuItem* icon);
 
 void resetIcons();
 
-void renderTimer(unsigned int encoderValue, RenderPressMode clicked);
+void checkLongPress(bool direction, bool held);
 
+void handleEncoderMove(bool direction, bool held);
 
 #endif //KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H

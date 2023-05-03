@@ -217,12 +217,12 @@
     {
       "parentId": 12,
       "type": "analogItem",
-      "defaultValue": "0",
+      "defaultValue": "44",
       "item": {
-        "maxValue": 10,
+        "maxValue": 119,
         "offset": 1,
         "divisor": 1,
-        "unitName": "min",
+        "unitName": "sec",
         "step": 1,
         "name": "Time",
         "variableName": "spin_duration",
@@ -373,6 +373,27 @@
       }
     },
     {
+      "parentId": 15,
+      "type": "analogItem",
+      "defaultValue": "4",
+      "item": {
+        "maxValue": 9,
+        "offset": 1,
+        "divisor": 1,
+        "unitName": "min",
+        "step": 1,
+        "name": "Preheat",
+        "variableName": "MaxPreheat",
+        "id": 44,
+        "eepromAddress": 94,
+        "functionName": "@settings_changed",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
       "parentId": 7,
       "type": "subMenu",
       "item": {
@@ -447,19 +468,15 @@
     },
     {
       "parentId": 30,
-      "type": "analogItem",
-      "defaultValue": "1",
+      "type": "boolItem",
+      "defaultValue": "true",
       "item": {
-        "maxValue": 2000,
-        "offset": 0,
-        "divisor": 1,
-        "unitName": "",
-        "step": 5,
-        "name": "PWM Threshold ",
-        "variableName": "stealthTransition",
-        "id": 42,
-        "eepromAddress": 92,
-        "functionName": "@stealthTransitionChanged",
+        "naming": "ON_OFF",
+        "name": "StealthChop",
+        "variableName": "StealthChop",
+        "id": 45,
+        "eepromAddress": 96,
+        "functionName": "@stealthChopChange",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -487,7 +504,7 @@
   "codeOptions": {
     "embeddedPlatform": "ARDUINO32",
     "lastDisplayUuid": "e6342680-6fab-4d1b-ac08-ce8dbfc0974c",
-    "lastInputUuid": "6dd87e7d-e751-4912-a70d-91793b1d3d87",
+    "lastInputUuid": "89cd7f70-0457-4884-97c2-0db904ccb0ba",
     "lastRemoteUuid": "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb",
     "lastRemoteUuids": [
       "2c101fec-1f7d-4ff3-8d2b-992ad41e7fcb"
@@ -575,51 +592,6 @@
         "name": "TFT_TOUCH_CALIBRATION_STORAGE_LOC",
         "latestValue": "400",
         "subsystem": "DISPLAY"
-      },
-      {
-        "name": "SW_POLLING_MODE",
-        "latestValue": "SWITCHES_NO_POLLING",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "SWITCH_IODEVICE",
-        "latestValue": "devicePins",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "ENCODER_PIN_A",
-        "latestValue": "ENC1",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "ENCODER_PIN_B",
-        "latestValue": "ENC2",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "ENCODER_PIN_OK",
-        "latestValue": "BUTTON",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "ENCODER_BACK_PIN",
-        "latestValue": "-1",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "ENCODER_NEXT_PIN",
-        "latestValue": "-1",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "PULLUP_LOGIC",
-        "latestValue": "true",
-        "subsystem": "INPUT"
-      },
-      {
-        "name": "ENCODER_IS_QUARTER_CYCLE",
-        "latestValue": "false",
-        "subsystem": "INPUT"
       },
       {
         "name": "ITEM_FONT",
