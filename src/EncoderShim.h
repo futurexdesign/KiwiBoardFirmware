@@ -10,7 +10,6 @@
 #include <tcMenu.h>
 
 #ifndef KIWIBOARDFIRMWARE_ENCODERSHIM_H
-
 #define KIWIBOARDFIRMWARE_ENCODERSHIM_H
 
 
@@ -20,11 +19,27 @@ typedef void (*EncoderShimFn)(bool direction, bool longPress);
 class EncoderShim : EncoderListener, SwitchListener {
 
     public:
-        EncoderShim(MenuManager* manager);
+        EncoderShim();
 
+        /**
+         * Initialize the encoder and button for pins defined in picoPlatform.   This must be called
+         * before setupMenu.
+         */
         void initForEncoder();
+
+        /**
+         * Register the function that should be called when the encoder value changes.
+         */
         void registerChangeCallback(EncoderShimFn callback);
+
+        /**
+         * Register the function that should be called when the encoder button has been pressed.
+         */
         void registerClickCallback(EncoderShimFn callback);
+
+        /**
+         * Swap the two encoder pins, this will invert the direction of the encoder in all modes.
+         */
         void invertEncoderDirection();
 
     private:
@@ -34,7 +49,7 @@ class EncoderShim : EncoderListener, SwitchListener {
 
         void onReleased(pinid_t pin, bool held) override;
 
-        MenuManager* menuManager;
+        // Callback Functions for click and change
         EncoderShimFn encoderChangeFn = nullptr;
         EncoderShimFn encoderClickFn = nullptr;
 

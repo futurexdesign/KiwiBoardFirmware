@@ -5,8 +5,7 @@
 
 #include "EncoderShim.h"
 
-EncoderShim::EncoderShim(MenuManager *manager) {
-    menuManager = manager;
+EncoderShim::EncoderShim() {
 
 }
 
@@ -15,11 +14,7 @@ void EncoderShim::initForEncoder() {
     switches.init(internalDigitalIo(), SWITCHES_NO_POLLING, true);
 
     switches.addSwitchListener(BUTTON, this, NO_REPEAT, false);
-    //switches.addSwitch(encoderButton, nullptr);
-    //switches.onRelease(encoderButton, EncoderShim::*buttonRelease);
     setupRotaryEncoderWithInterrupt(ENC1, ENC2, this, HWACCEL_NONE, FULL_CYCLE);
-    //setupRotaryEncoderWithInterrupt(encoderPinA, encoderPinB, [](int value) {menuMgr.valueChanged(value); }, HWACCEL_REGULAR, type);
-
 }
 
 void EncoderShim::encoderHasChanged(int newValue) {
@@ -33,8 +28,6 @@ void EncoderShim::encoderHasChanged(int newValue) {
     } else {
         direction = true;
     }
-
-    //Serial.println(direction);
 
     encoderValue = newValue;
 

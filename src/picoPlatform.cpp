@@ -31,7 +31,7 @@ void PicoPlatform::initializePlatform() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
-    // Remap IO to the correct pins for hardware SPI 0 
+    // Remap IO to the correct pins for hardware SPI 1
     SPI1.setRX(TMC_MISO);
     SPI1.setTX(TMC_MOSI);
     SPI1.setSCK(TMC_SCLK);
@@ -43,7 +43,7 @@ void PicoPlatform::initializePlatform() {
     pinMode(LCD_BACKLIGHT, OUTPUT);
     analogWrite(LCD_BACKLIGHT, 125);
 
-    //Setup SPI0 for the TFT
+    //Setup Hardware SPI0 for the TFT
     SPI.setCS(LCD_CS);
     SPI.setRX(LCD_MISO);
     SPI.setTX(LCD_MOSI);

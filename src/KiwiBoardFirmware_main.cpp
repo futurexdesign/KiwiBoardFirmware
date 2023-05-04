@@ -58,8 +58,6 @@ void setup() {
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
     gfx.setRotation(3);
-
-    // turn on the LED if DMA init successfully..
     gfx.initDMA(true);
 
     showSplash();
@@ -68,7 +66,7 @@ void setup() {
     gfx.fillScreen(TFT_BLACK);
 
     // Setup switches and encoder?
-    encoderShim = new EncoderShim(&menuMgr);
+    encoderShim = new EncoderShim();
     encoderShim->initForEncoder();
     encoderShim->registerChangeCallback(handleEncoderMove);
     encoderShim->registerClickCallback(checkLongPress);
@@ -102,9 +100,6 @@ void setup() {
     menuVersion.setTextValue(VERSION_NUM, true);
 
     setMenuOptions();
-
-    setTitlePressedCallback(titleBarClick);
-
     scheduleTasks();
 }
 
@@ -174,6 +169,7 @@ void ui_tick() {
         drawable->startDraw();
         drawable->drawXBitmap(Coord(135, 0), Coord(50, 50), KiwiLogoWidIcon0);
         drawable->endDraw();
+
     }
 
     // Check for heat icon, if the heater is on, show the icon,  otherwise swap in the blank widget
@@ -236,26 +232,6 @@ void motorErrorDialog(TMC5160::DriverStatus status) {
         dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
         dlg->show(error, false);
         dlg->copyIntoBuffer(msg);
-    }
-}
-
-/**
- * Show version dialog.
- *
- * @param id
- */
-void titleBarClick(int id) {
-
-    const char error[] PROGMEM = "Free Heap Usage";
-
-    BaseDialog *dlg = renderer.getDialog();
-    if (dlg) {
-        dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
-        dlg->show(error, false);
-        int freeHeap = rp2040.getFreeHeap();
-        char cstr[16];
-        itoa(freeHeap, cstr, 10);
-        dlg->copyIntoBuffer(cstr);
     }
 }
 
@@ -423,8 +399,6 @@ void setMenuOptions() {
     // first we get the graphics factory
     auto &factory = renderer.getGraphicsPropertiesFactory();
 
-    // renderer.takeOverDisplay(checkLongPress);
-
     // don't do the periodic reset, which causes some awkward redraw flashes.
     renderer.turnOffResetLogic();
 
@@ -461,10 +435,6 @@ void setMenuOptions() {
                                         GridPosition::JUSTIFY_CENTER_VALUE_ONLY, MenuBorder(0));
 
     // Settings for the Settings menu
-    // // here is how we completely redefine the drawing of a specific item, you can also define for submenu or default
-    //color_t specialPalette[] { RGB(0, 255, 0), RGB(255, 0, 0), RGB(70, 70, 70), RGB(0, 0, 255) };
-
-    // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers
     factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(),
                                          settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 2, 36,
@@ -497,7 +467,6 @@ void setMenuOptions() {
     renderer.setFirstWidget(&HeatWidget);
 
     // Black on white cursor
-//    factory.setSelectedColors(RGB(255, 0, 0), RGB(0, 255, 0));
     factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0));
 
     // Home the user to the wash menu option
@@ -563,7 +532,6 @@ void resetIcons() {
     factory.addImageToCache(DrawableIcon(menuDry.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap2));
     factory.addImageToCache(
             DrawableIcon(menuSettings.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap3));
-    MenuPadding perSidePadding(3, 3, 3, 3);
 
     if (stoppedButton != nullptr) {
         MenuPadding buttonPadding(4, 4, 4, 4);
