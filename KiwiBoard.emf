@@ -1,7 +1,7 @@
 {
   "version": "1.00",
   "projectName": "KiwiBoard",
-  "author": "2p3ca",
+  "author": "mtaylor",
   "items": [
     {
       "parentId": 0,
@@ -478,6 +478,23 @@
         "id": 43,
         "eepromAddress": -1,
         "readOnly": true,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
+      "type": "boolItem",
+      "defaultValue": "false",
+      "item": {
+        "naming": "ON_OFF",
+        "name": "Motor Test",
+        "variableName": "Test",
+        "id": 44,
+        "eepromAddress": -1,
+        "functionName": "@test",
+        "readOnly": false,
         "localOnly": false,
         "visible": true,
         "staticDataInRAM": false
