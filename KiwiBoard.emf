@@ -240,7 +240,7 @@
       "type": "analogItem",
       "defaultValue": "50",
       "item": {
-        "maxValue": 350,
+        "maxValue": 550,
         "offset": 50,
         "divisor": 1,
         "unitName": "rpm",

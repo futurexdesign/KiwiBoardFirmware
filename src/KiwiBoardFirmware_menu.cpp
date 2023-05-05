@@ -48,7 +48,7 @@ BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCA
 SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuAdvanced, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospinAMAX = { "Accel", 40, 88, 2000, settings_changed, 500, 1, "" };
 AnalogMenuItem menuspinAMAX(&minfospinAMAX, 375, NULL, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 350, settings_changed, 50, 1, "rpm" };
+const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 550, settings_changed, 50, 1, "rpm" };
 AnalogMenuItem menuspin_speed(&minfospin_speed, 50, &menuspinAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospin_duration = { "Time", 13, 12, 10, settings_changed, 1, 1, "min" };
 AnalogMenuItem menuspin_duration(&minfospin_duration, 0, &menuspin_speed, INFO_LOCATION_PGM);
