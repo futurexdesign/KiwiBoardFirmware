@@ -5,6 +5,8 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
+bool motorTest = 0;
+
 void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, uint16_t transition) {
     this->platform = curPlatform; // Set the current platform.
 
@@ -125,6 +127,23 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         motor->setMaxSpeed(rpmToVmax(currentSettings.spin_speed));     // Full steps per second
 
         state.direction = true;
+        
+    } else if (programId == 9) {
+        // test motor ramping..
+        motorTest = true;
+        state.isRunning = true;
+        
+        // Enable drive, active low
+        platform->enableMotor(true);
+       
+        // Set motor control to velocity mode, setup accelerations, max desired speed
+        // Set low accel, high rpm, check back to see if reached speed - yes? then decellerate to zero
+        motor->setRampMode(TMC5160::VELOCITY_MODE);
+        motor->setAcceleration(100); // 300 microsteps per unit of time
+        motor->setMaxSpeed(rpmToVmax(400)); // RPM 600
+
+        state.direction = true;
+    
     } else {
         // dry... which is basically a spin-off with heat
         // spin-off..
@@ -140,7 +159,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
-        motor->setAcceleration(600);
+        motor->setAcceleration(300);
         motor->setMaxSpeed(rpmToVmax(currentSettings.dry_speed));
 
         state.direction = true;
@@ -160,7 +179,7 @@ void MotorControl::exec() {
         if (motor->getCurrentSpeed() == 0) {
             state.isRunning = false;
             state.isStopping = false;
-
+            motorTest = false;
             platform->enableMotor(false);
 
             if (stoppedCallback != nullptr) {
@@ -168,7 +187,7 @@ void MotorControl::exec() {
             }
         } else {
             // Give it 10 10 ticks to finish before stopping it manually
-            if (state.stopping_cnt == 10) {
+            if (!motorTest && state.stopping_cnt == 10) {
                 motor->setCurrentPosition(0, true); // Reset position
                 motor->setTargetPosition(0); // Reset position
 
@@ -189,9 +208,17 @@ void MotorControl::exec() {
             platform->startCooldown();
         }
     }
+    if (motorTest) {
+        // testing motor ramp
+        Serial.println("Motor testing......");
+        Serial.print("Current Speed: ");
+        Serial.println(motor->getCurrentSpeed());
+        if(motor->isTargetVelocityReached()) 
+            stopMotion();
+    }
 
     // If past end time...
-    if (millis() >= state.run_end) {
+    if (!motorTest && millis() >= state.run_end) {
 
         stopMotion();
 

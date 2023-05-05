@@ -19,6 +19,7 @@
 #include <EepromItemStorage.h>
 #include <ArduinoEEPROMAbstraction.h>
 #include "picoPlatform.h"
+
 // variables we declare that you may need to access
 extern const PROGMEM ConnectorLocalInfo applicationInfo;
 extern TFT_eSPI gfx;
@@ -29,6 +30,7 @@ extern GraphicsDeviceRenderer renderer;
 
 
 // Global Menu Item exports
+extern BooleanMenuItem menuTest;
 extern TextMenuItem menuVersion;
 extern AnalogMenuItem menustealthTransition;
 extern AnalogMenuItem menuIRun;
@@ -76,6 +78,7 @@ void CALLBACK_FUNCTION iRunChanged(int id);
 void CALLBACK_FUNCTION settings_changed(int id);
 void CALLBACK_FUNCTION spin(int id);
 void CALLBACK_FUNCTION stealthTransitionChanged(int id);
+void CALLBACK_FUNCTION test(int id);
 void CALLBACK_FUNCTION wash(int id);
 
 #endif // MENU_GENERATED_CODE_H

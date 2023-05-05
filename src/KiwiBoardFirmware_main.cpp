@@ -17,7 +17,7 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.00-Unic";
+const char VERSION_NUM[] PROGMEM = "1.00-MJT";
 
 PicoPlatform *platform;
 MotorControl *motorControl;
@@ -93,7 +93,6 @@ void setup() {
     setMenuOptions();
 
     setTitlePressedCallback(titleBarClick);
-
     scheduleTasks();
 }
 
@@ -239,6 +238,11 @@ void titleBarClick(int id) {
     }
 }
 
+void CALLBACK_FUNCTION showsplashsc(int id) {
+    showSplash();
+    delay(2000);
+}
+
 void CALLBACK_FUNCTION wash(int id) {
     run(0, &menuWash);
 }
@@ -249,6 +253,10 @@ void CALLBACK_FUNCTION spin(int id) {
 
 void CALLBACK_FUNCTION dry(int id) {
     run(2, &menuDry);
+}
+
+void CALLBACK_FUNCTION test(int id) {
+    run(9, &menuTest);
 }
 
 /**
