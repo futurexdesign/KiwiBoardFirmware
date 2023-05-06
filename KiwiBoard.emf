@@ -1,7 +1,7 @@
 {
   "version": "1.00",
   "projectName": "KiwiBoard",
-  "author": "mtaylor",
+  "author": "2p3ca",
   "items": [
     {
       "parentId": 0,
@@ -384,7 +384,7 @@
         "step": 1,
         "name": "Preheat",
         "variableName": "MaxPreheat",
-        "id": 44,
+        "id": 48,
         "eepromAddress": 94,
         "functionName": "@settings_changed",
         "readOnly": false,

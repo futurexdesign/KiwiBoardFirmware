@@ -23,7 +23,7 @@ GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 const BooleanMenuInfo minfoTest = { "Motor Test", 44, 0xffff, 1, test, NAMING_ON_OFF };
 BooleanMenuItem menuTest(&minfoTest, false, NULL, INFO_LOCATION_PGM);
 RENDERING_CALLBACK_NAME_INVOKE(fnVersionRtCall, textItemRenderFn, "Version", -1, NO_CALLBACK)
-TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, NULL);
+TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, &menuTest);
 const BooleanMenuInfo minfoStealthChop = { "StealthChop", 45, 96, 1, stealthChopChange, NAMING_ON_OFF };
 BooleanMenuItem menuStealthChop(&minfoStealthChop, true, &menuVersion, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
@@ -35,7 +35,7 @@ BooleanMenuItem menuInvertEncoder(&minfoInvertEncoder, false, &menuGlobalScaler,
 const SubMenuInfo minfoAdvanced = { "Advanced", 30, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackAdvanced(&minfoAdvanced, &menuInvertEncoder, INFO_LOCATION_PGM);
 SubMenuItem menuAdvanced(&minfoAdvanced, &menuBackAdvanced, NULL, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfoMaxPreheat = { "Preheat", 44, 94, 9, settings_changed, 1, 1, "min" };
+const AnalogMenuInfo minfoMaxPreheat = { "Preheat", 48, 94, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menuMaxPreheat(&minfoMaxPreheat, 4, NULL, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfocooldownTime = { "Cool Time", 19, 21, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menucooldownTime(&minfocooldownTime, 1, &menuMaxPreheat, INFO_LOCATION_PGM);
