@@ -19,7 +19,7 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.*-PreHeat";
+const char VERSION_NUM[] PROGMEM = "1.1.0";
 
 
 PicoPlatform *platform;
