@@ -22,6 +22,8 @@ SETTINGS getSettings() {
     rtn.cooldownTime = menucooldownTime.getIntValueIncludingOffset();
     rtn.fanCooldown = menufanCooldown.getBoolean();
 
+    rtn.preheatTime = menuMaxPreheat.getIntValueIncludingOffset();
+
     return rtn;
 }
 

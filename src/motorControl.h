@@ -20,7 +20,7 @@ class MotorControl : public Executable
         /**
          * Initialize the TMC5160 motion controller running on the provided platform.
          */
-        void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, uint16_t transition);
+        void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop);
 
         void stopMotion();
         void startProgram(int programId, SETTINGS currentSettings);
@@ -50,14 +50,23 @@ class MotorControl : public Executable
          */
          void setStoppedCallback(MotorCallbackFn stopFn);
 
-         /**
-          * Set the value of TPWMTHRS, the transition velocity between StealthChop and SpreadCycle.  This
-          * is set in terms of TSTEP (time per micro-step)
-          *
-          * @param transitionTime
-          */
-         void setPwmTransitionTime(int transitionTime);
 
+         /**
+          * Set if StealthChop should be enabled, or if we should only use SpreadCycle.
+          *
+          * @param enabled
+          */
+         void setStealthChop(bool enabled);
+
+         /**
+          * Return the current configured motor speed.
+          */
+        int getMotorSpeed();
+
+        /**
+         * Override the current motor speed.
+         */
+        void overrideMotorSpeed(int speedRPM);
 
         /**
          * Called by task loop.  This is what will process any motor control tasks necessary to execute programs.

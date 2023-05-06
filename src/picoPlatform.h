@@ -74,6 +74,14 @@ class PicoPlatform : public Executable {
         void startCooldown();
 
         /**
+         * Start an optional preheat cycle.
+         *
+         * Look at the current configuration,  calculate preheat end, and start time.  A call to startCooldown
+         * will override any running preheat.
+         */
+        void startPreheat();
+
+        /**
          * To be called by task loop.  This is charged with updating any state changes necessary with the
          * platform outside of direct motor control.
          *
@@ -94,6 +102,7 @@ class PicoPlatform : public Executable {
         bool isFanEnabled();
 
     private:
+        bool in_preheat = false;
         bool in_cooldown = false;
         bool motor_enabled = false;
         bool heater_enabled = false;
@@ -102,5 +111,7 @@ class PicoPlatform : public Executable {
 
         unsigned long cooldown_start; // when did a cooldown start.
         unsigned long cooldown_end; // when should a cooldown stop.
+        unsigned long preheat_start;
+        unsigned long preheat_end;
 
 };
