@@ -179,7 +179,13 @@ void MotorControl::exec() {
         if (motor->getCurrentSpeed() == 0) {
             state.isRunning = false;
             state.isStopping = false;
-            motorTest = false;
+            if(motorTest) {
+                if(motor->getCurrentSpeed() == 0) {
+                    menuTest.setBoolean(false, false);
+                    //menuTest.changeOccurred(true);
+                    motorTest = false;
+                }
+            }      
             platform->enableMotor(false);
 
             if (stoppedCallback != nullptr) {
