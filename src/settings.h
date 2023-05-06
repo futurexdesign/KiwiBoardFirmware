@@ -23,7 +23,9 @@ struct SETTINGS
     int dry_duration;
     int dry_speed;
     int cooldownTime;
+    int preheatTime;
     bool fanCooldown;
+
     
 };
 

@@ -8,6 +8,8 @@
 #include <BaseDialog.h>
 #include "splashScreen.h"
 #include "KiwiBoardFirmware_main.h"
+#include "EncoderShim.h"
+#include "heat.h"
 
 #ifdef SCREENCAP
 #include "screenServer.h"
@@ -17,11 +19,13 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.00-MJT";
+const char VERSION_NUM[] PROGMEM = "1.1.*-Test";
+
 
 PicoPlatform *platform;
-MotorControl *motorControl;
+MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
+EncoderShim *encoderShim;
 
 // Error occurred, in HALT state.
 bool HALT = false;
@@ -54,14 +58,18 @@ void setup() {
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
     gfx.setRotation(3);
-
-    // turn on the LED if DMA init successfully..
     gfx.initDMA(true);
 
     showSplash();
 
     delay(2000);
     gfx.fillScreen(TFT_BLACK);
+
+    // Setup switches and encoder?
+    encoderShim = new EncoderShim();
+    encoderShim->initForEncoder();
+    encoderShim->registerChangeCallback(handleEncoderMove);
+    encoderShim->registerClickCallback(checkLongPress);
 
     menuRunTime.setReadOnly(true);
     setupMenu();
@@ -71,7 +79,7 @@ void setup() {
     motorControl = new MotorControl();
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
                                        menuIRun.getIntValueIncludingOffset(),
-                                       menustealthTransition.getIntValueIncludingOffset());
+                                       menuStealthChop.getBoolean());
 
     motorControl->setStoppedCallback(stoppedCallback);
 
@@ -81,18 +89,17 @@ void setup() {
     // Check for encoder inversion..
     if (menuInvertEncoder.getBoolean()) {
         // Inversion selected, reinitialize the encoder plugin with the pins reversed.
-        Serial.println("Encoder inversion requested.. reinit menuMgr with encoder flipped");
-        menuMgr.initForEncoder(&renderer, &menuRunTime, ENC2, ENC1, BUTTON);
+       encoderShim->invertEncoderDirection();
+       // reinit menu system so encoder is configured properly.
+       setupMenu();
     }
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
 
-    menuVersion.setTextValue(VERSION_NUM,true);
+    menuVersion.setTextValue(VERSION_NUM, true);
 
     setMenuOptions();
-
-    setTitlePressedCallback(titleBarClick);
     scheduleTasks();
 }
 
@@ -149,8 +156,6 @@ void ui_tick() {
 
     // Check for motor status, if overheated or shorted, alert user
     TMC5160::DriverStatus curStatus = motorControl->getDriverStatus();
-    Serial.println("Driver Status:");
-    Serial.println(curStatus);
     if (curStatus != TMC5160::DriverStatus::OK) {
         // launch error dialog
         motorErrorDialog(curStatus);
@@ -164,6 +169,18 @@ void ui_tick() {
         drawable->startDraw();
         drawable->drawXBitmap(Coord(135, 0), Coord(50, 50), KiwiLogoWidIcon0);
         drawable->endDraw();
+
+    }
+
+    // Check for heat icon, if the heater is on, show the icon,  otherwise swap in the blank widget
+    if (platform->isHeaterEnabled()) {
+        if (HeatWidget.getCurrentState() != 1) {
+            HeatWidget.setCurrentState(1);
+        }
+    } else {
+        if (HeatWidget.getCurrentState() !=0) {
+            HeatWidget.setCurrentState(0);
+        }
     }
 
 }
@@ -216,31 +233,6 @@ void motorErrorDialog(TMC5160::DriverStatus status) {
         dlg->show(error, false);
         dlg->copyIntoBuffer(msg);
     }
-}
-
-/**
- * Show version dialog.
- *
- * @param id
- */
-void titleBarClick(int id) {
-
-    const char error[] PROGMEM = "Free Heap Usage";
-
-    BaseDialog *dlg = renderer.getDialog();
-    if (dlg) {
-        dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
-        dlg->show(error, false);
-        int freeHeap = rp2040.getFreeHeap();
-        char cstr[16];
-        itoa(freeHeap, cstr, 10);
-        dlg->copyIntoBuffer(cstr);
-    }
-}
-
-void CALLBACK_FUNCTION showsplashsc(int id) {
-    showSplash();
-    delay(2000);
 }
 
 void CALLBACK_FUNCTION wash(int id) {
@@ -299,7 +291,7 @@ void CALLBACK_FUNCTION GlobalScalerChanged(int id) {
     // init
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
                                        menuIRun.getIntValueIncludingOffset(),
-                                       menustealthTransition.getIntValueIncludingOffset());
+                                       menuStealthChop.getBoolean());
 
     settingsChanged = true;
 }
@@ -319,7 +311,7 @@ void CALLBACK_FUNCTION iRunChanged(int id) {
     // init
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
                                        menuIRun.getIntValueIncludingOffset(),
-                                       menustealthTransition.getIntValueIncludingOffset());
+                                       menuStealthChop.getBoolean());
 
     settingsChanged = true;
 }
@@ -332,15 +324,22 @@ void CALLBACK_FUNCTION backlightChange(int id) {
     PicoPlatform::setBacklight(newVal);
 }
 
+
 /**
- * Callback for when the user changes the PWM Transition time.   The motor controller needs to be stopped, and
- * reconfigured.
+ * Callback for when the user changes the StealthChop setting.
  *
  * @param id
  */
-void CALLBACK_FUNCTION stealthTransitionChanged(int id) {
+void CALLBACK_FUNCTION stealthChopChange(int id) {
 
-    motorControl->setPwmTransitionTime(menustealthTransition.getIntValueIncludingOffset());
+    // Shut off the TMC
+    platform->enableMotor(false);
+    delay(100); // wait for everything to settle...
+    // init
+    motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
+                                       menuIRun.getIntValueIncludingOffset(),
+                                       menuStealthChop.getBoolean());
+
     settingsChanged = true;
 }
 
@@ -440,10 +439,6 @@ void setMenuOptions() {
                                         GridPosition::JUSTIFY_CENTER_VALUE_ONLY, MenuBorder(0));
 
     // Settings for the Settings menu
-    // // here is how we completely redefine the drawing of a specific item, you can also define for submenu or default
-    //color_t specialPalette[] { RGB(0, 255, 0), RGB(255, 0, 0), RGB(70, 70, 70), RGB(0, 0, 255) };
-
-    // TODO work out these how to style these, because currently, you can't see the cursor when editing multi part large numbers
     factory.setDrawingPropertiesAllInSub(ItemDisplayProperties::COMPTYPE_ITEM, menuSettings.getId(),
                                          settingsMenuPalette,
                                          MenuPadding(4), nullptr, 4, 2, 36,
@@ -472,8 +467,10 @@ void setMenuOptions() {
     // Blank the title bar so that we can render the logo overtop of it. (Save a draw call to blank the rectangle)
     appTitleMenuItem.setTitleOverridePgm("");
 
+    // Setup heat icon?
+    renderer.setFirstWidget(&HeatWidget);
+
     // Black on white cursor
-//    factory.setSelectedColors(RGB(255, 0, 0), RGB(0, 255, 0));
     factory.setSelectedColors(RGB(255, 255, 255), RGB(0, 0, 0));
 
     // Home the user to the wash menu option
@@ -508,32 +505,24 @@ void setIconStopped(MenuItem *icon) {
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
 }
 
-void renderTimer(unsigned int encoderValue, RenderPressMode clicked) {
+void checkLongPress(bool direction, bool held) {
 
-    // Test manually rendering the timer to see if it can be done smoother..
-    // it didnt really help..
-    //Serial.println("Render callback... we own display");
-
-    int xpos = 100;
-    // Render the timer box.. maybe ?
-    TimeStorage ts = menuRunTime.getTime();
-
-    if (ts.minutes == 0 && ts.seconds == 0) {
-        // renderer.giveBackDisplay();
-    } else {
-
-        gfx.drawRect(0, 50, 320, 100, TFT_WHITE);
-        gfx.fillRect(0, 52, 320, 100, TFT_WHITE);
-        gfx.setTextColor(TFT_BLACK);
-
-        xpos += gfx.drawNumber(ts.minutes, xpos, 70, 7);
-        xpos += gfx.drawChar(':', xpos, 70, 7);
-        gfx.drawNumber(ts.seconds, xpos, 70, 7);
+    // Check for a long press... no idea what menu ... but whatever?
+    if (held) {
+        // what are we long pressing on?
+        if(menuMgr.findCurrentActive()->getId() == menuSpin.getId() || menuMgr.findCurrentActive()->getId() == menuWash.getId() ) {
+            if (platform->isHeaterEnabled()) {
+                // cancel preheat
+                platform->enableHeater(false);
+            } else {
+                platform->startPreheat();
+            }
+        }
     }
 }
 
 /**
- * Reset all of the icons back to their original state, reset the selecton color value.
+ * Reset all of the icons back to their original state, reset the selection color value.
  */
 void resetIcons() {
 
@@ -547,7 +536,6 @@ void resetIcons() {
     factory.addImageToCache(DrawableIcon(menuDry.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap2));
     factory.addImageToCache(
             DrawableIcon(menuSettings.getId(), iconSize, DrawableIcon::ICON_XBITMAP, CycleIconsBitmap3));
-    MenuPadding perSidePadding(3, 3, 3, 3);
 
     if (stoppedButton != nullptr) {
         MenuPadding buttonPadding(4, 4, 4, 4);
@@ -577,4 +565,45 @@ void screenCaptureTask() {
         screenServer();
     }
 #endif
+}
+
+/**
+ * Handle an encoder movement.  Only do anything if we are actively running a program, otherwise we don't care
+ *
+ * @param direction
+ * @param held
+ */
+void handleEncoderMove(bool direction, bool held) {
+
+//    Serial.println("handleEncoderMove...");
+//    if (motorControl != nullptr && motorControl->isRunning()) {
+//        Serial.println("program running.. change speed");
+//        // We are running, track left / right as speed changes..
+//
+//        int curSpeed = motorControl->getMotorSpeed();
+//
+//        // TODO Add bounds...
+//        if (!direction) {
+//
+//            curSpeed = curSpeed - 10;
+//        } else {
+//            curSpeed = curSpeed + 10;
+//        }
+//
+//        motorControl->overrideMotorSpeed(curSpeed);
+//        Serial.println(curSpeed);
+
+
+//        BaseDialog *dlg = renderer.getDialog();
+//        if (dlg) {
+//            dlg->setButtons(BTNTYPE_CLOSE, BTNTYPE_NONE);
+//            dlg->show("Motor Speed Changed", false);
+////            char cstr[16];
+////            itoa(curSpeed, cstr, 10);
+////
+////            dlg->copyIntoBuffer(cstr);
+//        }
+
+    //}
+
 }
