@@ -29,7 +29,7 @@ extern GraphicsDeviceRenderer renderer;
 
 
 // Global Menu Item exports
-extern BooleanMenuItem menuTest;
+extern BooleanMenuItem menumotorTest;
 extern TextMenuItem menuVersion;
 extern BooleanMenuItem menuStealthChop;
 extern AnalogMenuItem menuIRun;
@@ -75,10 +75,10 @@ void CALLBACK_FUNCTION GlobalScalerChanged(int id);
 void CALLBACK_FUNCTION backlightChange(int id);
 void CALLBACK_FUNCTION dry(int id);
 void CALLBACK_FUNCTION iRunChanged(int id);
+void CALLBACK_FUNCTION motortest(int id);
 void CALLBACK_FUNCTION settings_changed(int id);
 void CALLBACK_FUNCTION spin(int id);
 void CALLBACK_FUNCTION stealthChopChange(int id);
-void CALLBACK_FUNCTION test(int id);
 void CALLBACK_FUNCTION wash(int id);
 
 #endif // MENU_GENERATED_CODE_H

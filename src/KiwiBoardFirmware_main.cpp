@@ -247,8 +247,8 @@ void CALLBACK_FUNCTION dry(int id) {
     run(2, &menuDry);
 }
 
-void CALLBACK_FUNCTION test(int id) {
-    run(9, &menuTest);
+void CALLBACK_FUNCTION motortest(int id) {
+    run(9, &menumotorTest);
 }
 
 /**

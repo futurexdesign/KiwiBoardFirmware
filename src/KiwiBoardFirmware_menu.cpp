@@ -20,10 +20,10 @@ TfteSpiDrawable gfxDrawable(&gfx, 100);
 GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
-const BooleanMenuInfo minfoTest = { "Motor Test", 44, 0xffff, 1, test, NAMING_ON_OFF };
-BooleanMenuItem menuTest(&minfoTest, false, NULL, INFO_LOCATION_PGM);
+const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
+BooleanMenuItem menumotorTest(&minfomotorTest, false, NULL, INFO_LOCATION_PGM);
 RENDERING_CALLBACK_NAME_INVOKE(fnVersionRtCall, textItemRenderFn, "Version", -1, NO_CALLBACK)
-TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, &menuTest);
+TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, &menumotorTest);
 const BooleanMenuInfo minfoStealthChop = { "StealthChop", 45, 96, 1, stealthChopChange, NAMING_ON_OFF };
 BooleanMenuItem menuStealthChop(&minfoStealthChop, true, &menuVersion, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };

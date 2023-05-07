@@ -5,8 +5,6 @@
 #include "motorControl.h"
 #include "picoPlatform.h"
 
-bool motorTest = 0;
-
 void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
     this->platform = curPlatform; // Set the current platform.
 
@@ -139,7 +137,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
     } else if (programId == 9) {
         // test motor ramping..
-        motorTest = true;
+        state.isTesting = true;
         state.isRunning = true;
 
         // Enable drive, active low
@@ -189,13 +187,7 @@ void MotorControl::exec() {
         if (motor->getCurrentSpeed() == 0) {
             state.isRunning = false;
             state.isStopping = false;
-            if(motorTest) {
-                if(motor->getCurrentSpeed() == 0) {
-                    menuTest.setBoolean(false, false);
-                    //menuTest.changeOccurred(true);
-                    motorTest = false;
-                }
-            }
+
             platform->enableMotor(false);
 
             if (stoppedCallback != nullptr) {
@@ -203,7 +195,7 @@ void MotorControl::exec() {
             }
         } else {
             // Give it 10 10 ticks to finish before stopping it manually
-            if (!motorTest && state.stopping_cnt == 10) {
+            if (!state.isTesting && state.stopping_cnt == 10) {
                 motor->setCurrentPosition(0, true); // Reset position
                 motor->setTargetPosition(0); // Reset position
 
@@ -224,17 +216,25 @@ void MotorControl::exec() {
             platform->startCooldown();
         }
     }
-    if (motorTest) {
-        // testing motor ramp
+
+    // Check motor testing status
+    if (state.isTesting) {
         Serial.println("Motor testing......");
         Serial.print("Current Speed: ");
         Serial.println(motor->getCurrentSpeed());
-        if(motor->isTargetVelocityReached())
-            stopMotion();
+        // If reached target velocity...
+        if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() > 0) 
+            motor->setMaxSpeed(rpmToVmax(0)); 
+        // If Stopped...
+        if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() == 0) {
+                menumotorTest.setBoolean(false, false);
+                state.isTesting = false;
+            }
     }
+    
 
     // If past end time...
-    if (!motorTest && millis() >= state.run_end) {
+    if (!state.isTesting && millis() >= state.run_end) {
 
         stopMotion();
 

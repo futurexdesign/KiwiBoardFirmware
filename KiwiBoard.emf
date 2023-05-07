@@ -1,7 +1,7 @@
 {
   "version": "1.00",
   "projectName": "KiwiBoard",
-  "author": "2p3ca",
+  "author": "mtaylor",
   "items": [
     {
       "parentId": 0,
@@ -507,10 +507,10 @@
       "item": {
         "naming": "ON_OFF",
         "name": "Motor Test",
-        "variableName": "Test",
+        "variableName": "motorTest",
         "id": 44,
         "eepromAddress": -1,
-        "functionName": "@test",
+        "functionName": "@motortest",
         "readOnly": false,
         "localOnly": false,
         "visible": true,

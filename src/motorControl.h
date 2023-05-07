@@ -78,6 +78,7 @@ class MotorControl : public Executable
         {
             bool isRunning = false;
             bool isStopping = false;
+            bool isTesting = false;
             int program;    // 0 = agitate; 1 = spin; 2 = dry
             bool direction; // false = CW ; true = CCW
             int washSteps; // whole steps configured for wash cycle
