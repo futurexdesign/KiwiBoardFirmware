@@ -217,22 +217,6 @@ void MotorControl::exec() {
         }
     }
 
-    // Check motor testing status
-    if (state.isTesting) {
-        Serial.println("Motor testing......");
-        Serial.print("Current Speed: ");
-        Serial.println(motor->getCurrentSpeed());
-        // If reached target velocity...
-        if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() > 0) 
-            motor->setMaxSpeed(rpmToVmax(0)); 
-        // If Stopped...
-        if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() == 0) {
-                menumotorTest.setBoolean(false, false);
-                state.isTesting = false;
-            }
-    }
-    
-
     // If past end time...
     if (!state.isTesting && millis() >= state.run_end) {
 
@@ -252,7 +236,23 @@ void MotorControl::exec() {
             state.direction = !state.direction;
             motor->setTargetPosition(state.direction ? 0 : state.washSteps);
         }
-    }
+    } else if (state.isTesting) {
+            Serial.println("Motor testing......");
+            Serial.print("Current Speed: ");
+            Serial.println(motor->getCurrentSpeed());
+            // If reached target velocity...
+            if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() > 0) {
+                motor->setMaxSpeed(rpmToVmax(0));
+            }
+            // If Stopped...
+            if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() == 0) {
+                menumotorTest.setBoolean(false, true);
+                state.isRunning = false;
+                state.isTesting = false;
+                platform->enableMotor(false);
+            }
+        }
+
 }
 
 int MotorControl::getRunningProgram() {
