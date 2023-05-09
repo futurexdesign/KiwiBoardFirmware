@@ -134,6 +134,23 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         state.rpm = currentSettings.spin_speed;
 
         state.direction = true;
+
+    } else if (programId == 9) {
+        // test motor ramping..
+        state.isTesting = true;
+        state.isRunning = true;
+
+        // Enable drive, active low
+        platform->enableMotor(true);
+
+        // Set motor control to velocity mode, setup accelerations, max desired speed
+        // Set low accel, high rpm, check back to see if reached speed - yes? then decellerate to zero
+        motor->setRampMode(TMC5160::VELOCITY_MODE);
+        motor->setAcceleration(100); // 300 microsteps per unit of time
+        motor->setMaxSpeed(rpmToVmax(400)); // RPM 600
+
+        state.direction = true;
+
     } else {
         // dry... which is basically a spin-off with heat
         // spin-off..
@@ -149,7 +166,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(TMC5160::VELOCITY_MODE);
-        motor->setAcceleration(600);
+        motor->setAcceleration(300);
         motor->setMaxSpeed(rpmToVmax(currentSettings.dry_speed));
         state.rpm = currentSettings.dry_speed;
 
@@ -178,7 +195,7 @@ void MotorControl::exec() {
             }
         } else {
             // Give it 10 10 ticks to finish before stopping it manually
-            if (state.stopping_cnt == 10) {
+            if (!state.isTesting && state.stopping_cnt == 10) {
                 motor->setCurrentPosition(0, true); // Reset position
                 motor->setTargetPosition(0); // Reset position
 
@@ -201,7 +218,7 @@ void MotorControl::exec() {
     }
 
     // If past end time...
-    if (millis() >= state.run_end) {
+    if (!state.isTesting && millis() >= state.run_end) {
 
         stopMotion();
 
@@ -219,7 +236,23 @@ void MotorControl::exec() {
             state.direction = !state.direction;
             motor->setTargetPosition(state.direction ? 0 : state.washSteps);
         }
-    }
+    } else if (state.isTesting) {
+            Serial.println("Motor testing......");
+            Serial.print("Current Speed: ");
+            Serial.println(motor->getCurrentSpeed());
+            // If reached target velocity...
+            if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() > 0) {
+                motor->setMaxSpeed(rpmToVmax(0));
+            }
+            // If Stopped...
+            if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() == 0) {
+                menumotorTest.setBoolean(false, true);
+                state.isRunning = false;
+                state.isTesting = false;
+                platform->enableMotor(false);
+            }
+        }
+
 }
 
 int MotorControl::getRunningProgram() {

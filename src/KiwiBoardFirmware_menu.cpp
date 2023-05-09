@@ -20,8 +20,10 @@ TfteSpiDrawable gfxDrawable(&gfx, 100);
 GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
+const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
+BooleanMenuItem menumotorTest(&minfomotorTest, false, NULL, INFO_LOCATION_PGM);
 RENDERING_CALLBACK_NAME_INVOKE(fnVersionRtCall, textItemRenderFn, "Version", -1, NO_CALLBACK)
-TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, NULL);
+TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, &menumotorTest);
 const BooleanMenuInfo minfoStealthChop = { "StealthChop", 45, 96, 1, stealthChopChange, NAMING_ON_OFF };
 BooleanMenuItem menuStealthChop(&minfoStealthChop, true, &menuVersion, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
@@ -33,7 +35,7 @@ BooleanMenuItem menuInvertEncoder(&minfoInvertEncoder, false, &menuGlobalScaler,
 const SubMenuInfo minfoAdvanced = { "Advanced", 30, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackAdvanced(&minfoAdvanced, &menuInvertEncoder, INFO_LOCATION_PGM);
 SubMenuItem menuAdvanced(&minfoAdvanced, &menuBackAdvanced, NULL, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfoMaxPreheat = { "Preheat", 44, 94, 9, settings_changed, 1, 1, "min" };
+const AnalogMenuInfo minfoMaxPreheat = { "Preheat", 48, 94, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menuMaxPreheat(&minfoMaxPreheat, 4, NULL, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfocooldownTime = { "Cool Time", 19, 21, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menucooldownTime(&minfocooldownTime, 1, &menuMaxPreheat, INFO_LOCATION_PGM);
@@ -48,7 +50,7 @@ BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCA
 SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuAdvanced, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospinAMAX = { "Accel", 40, 88, 2000, settings_changed, 500, 1, "" };
 AnalogMenuItem menuspinAMAX(&minfospinAMAX, 375, NULL, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 350, settings_changed, 50, 1, "rpm" };
+const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 550, settings_changed, 50, 1, "rpm" };
 AnalogMenuItem menuspin_speed(&minfospin_speed, 50, &menuspinAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospin_duration = { "Time", 13, 12, 119, settings_changed, 1, 1, "sec" };
 AnalogMenuItem menuspin_duration(&minfospin_duration, 44, &menuspin_speed, INFO_LOCATION_PGM);

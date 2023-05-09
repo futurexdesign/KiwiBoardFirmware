@@ -19,7 +19,7 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.1.0";
+const char VERSION_NUM[] PROGMEM = "1.1.*-Test";
 
 
 PicoPlatform *platform;
@@ -245,6 +245,10 @@ void CALLBACK_FUNCTION spin(int id) {
 
 void CALLBACK_FUNCTION dry(int id) {
     run(2, &menuDry);
+}
+
+void CALLBACK_FUNCTION motortest(int id) {
+    run(9, &menumotorTest);
 }
 
 /**
