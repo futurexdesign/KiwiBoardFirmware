@@ -250,9 +250,11 @@ void MotorControl::exec() {
                 state.isRunning = false;
                 state.isTesting = false;
                 platform->enableMotor(false);
+                if (stoppedCallback != nullptr) {
+                    stoppedCallback(state.program);
+                }
             }
         }
-
 }
 
 int MotorControl::getRunningProgram() {
