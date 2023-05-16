@@ -29,8 +29,8 @@ extern GraphicsDeviceRenderer renderer;
 
 
 // Global Menu Item exports
-extern BooleanMenuItem menumotorTest;
 extern TextMenuItem menuVersion;
+extern BooleanMenuItem menumotorTest;
 extern BooleanMenuItem menuStealthChop;
 extern AnalogMenuItem menuIRun;
 extern AnalogMenuItem menuGlobalScaler;

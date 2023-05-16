@@ -20,12 +20,12 @@ TfteSpiDrawable gfxDrawable(&gfx, 100);
 GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
-const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
-BooleanMenuItem menumotorTest(&minfomotorTest, false, NULL, INFO_LOCATION_PGM);
 RENDERING_CALLBACK_NAME_INVOKE(fnVersionRtCall, textItemRenderFn, "Version", -1, NO_CALLBACK)
-TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, &menumotorTest);
+TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, NULL);
+const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
+BooleanMenuItem menumotorTest(&minfomotorTest, false, &menuVersion, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfoStealthChop = { "StealthChop", 45, 96, 1, stealthChopChange, NAMING_ON_OFF };
-BooleanMenuItem menuStealthChop(&minfoStealthChop, true, &menuVersion, INFO_LOCATION_PGM);
+BooleanMenuItem menuStealthChop(&minfoStealthChop, true, &menumotorTest, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
 AnalogMenuItem menuIRun(&minfoIRun, 17, &menuStealthChop, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoGlobalScaler = { "Global Scaler", 32, 75, 255, GlobalScalerChanged, 0, 1, "" };

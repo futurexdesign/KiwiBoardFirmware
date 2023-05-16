@@ -485,23 +485,6 @@
     },
     {
       "parentId": 30,
-      "type": "textItem",
-      "defaultValue": "1.00",
-      "item": {
-        "textLength": 10,
-        "itemType": "PLAIN_TEXT",
-        "name": "Version",
-        "variableName": "Version",
-        "id": 43,
-        "eepromAddress": -1,
-        "readOnly": true,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 30,
       "type": "boolItem",
       "defaultValue": "false",
       "item": {
@@ -512,6 +495,23 @@
         "eepromAddress": -1,
         "functionName": "@motortest",
         "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
+      "type": "textItem",
+      "defaultValue": "1.00",
+      "item": {
+        "textLength": 10,
+        "itemType": "PLAIN_TEXT",
+        "name": "Version",
+        "variableName": "Version",
+        "id": 43,
+        "eepromAddress": -1,
+        "readOnly": true,
         "localOnly": false,
         "visible": true,
         "staticDataInRAM": false
