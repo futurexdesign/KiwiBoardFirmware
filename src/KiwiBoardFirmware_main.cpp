@@ -175,7 +175,7 @@ void ui_tick() {
             drawable = renderer.getDeviceDrawable();
             drawable->setColors(RGB(0, 0, 0), RGB(0, 0, 0));
             drawable->drawBox(Coord(0, 238), Coord(320,2), true);
-            drawable->endDraw();f
+            drawable->endDraw();
 
         }
 
