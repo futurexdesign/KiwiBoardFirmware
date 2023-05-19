@@ -19,7 +19,7 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.1.2";
+const char VERSION_NUM[] PROGMEM = "1.1.3";
 
 
 PicoPlatform *platform;
@@ -29,6 +29,7 @@ EncoderShim *encoderShim;
 
 // Error occurred, in HALT state.
 bool HALT = false;
+bool DIALOG = false;
 
 // Track if we need to save setting changes.
 bool settingsChanged = false;
@@ -89,9 +90,9 @@ void setup() {
     // Check for encoder inversion..
     if (menuInvertEncoder.getBoolean()) {
         // Inversion selected, reinitialize the encoder plugin with the pins reversed.
-       encoderShim->invertEncoderDirection();
-       // reinit menu system so encoder is configured properly.
-       setupMenu();
+        encoderShim->invertEncoderDirection();
+        // reinit menu system so encoder is configured properly.
+        setupMenu();
     }
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
@@ -107,16 +108,15 @@ void setup() {
  * Main loop, we are delegating to the Task library to trigger all of our main processing, so pump the event bus
  */
 void loop() {
-    // If a TMC error happened... No further processing.
     if (!HALT) {
         taskManager.runLoop();
     }
+
 }
 
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
-
     resetIcons();
     observer->resetConstraint();
 }
@@ -130,56 +130,64 @@ void stoppedCallback(int pgm) {
  */
 void ui_tick() {
 
-    // Update the remaining time...
-    if (motorControl->isRunning()) {
-        unsigned long secRemaining = motorControl->getSecondsRemaining();
-
-        int minutes = secRemaining / 60;
-        int secRemand = secRemaining % 60;
-
-        struct TimeStorage ts = menuRunTime.getTime();
-        if (ts.seconds != secRemand || ts.minutes != minutes) {
-            ts.seconds = secRemand;
-            ts.minutes = minutes;
-            menuRunTime.setTime(ts);
-            menuRunTime.changeOccurred(true);
-        }
-    } else {
-        struct TimeStorage ts = menuRunTime.getTime();
-        if (ts.seconds != 0) {
-            ts.seconds = 0;
-            ts.minutes = 0;
-            menuRunTime.setTime(ts);
-            menuRunTime.changeOccurred(true);
-        }
-    }
-
     // Check for motor status, if overheated or shorted, alert user
     TMC5160::DriverStatus curStatus = motorControl->getDriverStatus();
-    if (curStatus != TMC5160::DriverStatus::OK) {
+    if (!DIALOG && curStatus != TMC5160::DriverStatus::OK) {
+
         // launch error dialog
         motorErrorDialog(curStatus);
-    }
-
-    // Draw the Logo, Centered in the title bar, but only on the main screen
-    // If currentSubMenu is null, we are on the "home" screen... Show the centered icon.
-    if (menuMgr.getCurrentSubMenu() == nullptr) {
-        auto drawable = renderer.getDeviceDrawable();
-        drawable->setColors(RGB(255, 255, 255), RGB(0, 0, 0));
-        drawable->startDraw();
-        drawable->drawXBitmap(Coord(135, 0), Coord(50, 50), KiwiLogoWidIcon0);
-        drawable->endDraw();
-
-    }
-
-    // Check for heat icon, if the heater is on, show the icon,  otherwise swap in the blank widget
-    if (platform->isHeaterEnabled()) {
-        if (HeatWidget.getCurrentState() != 1) {
-            HeatWidget.setCurrentState(1);
-        }
     } else {
-        if (HeatWidget.getCurrentState() !=0) {
-            HeatWidget.setCurrentState(0);
+
+        // Update the remaining time...
+        if (motorControl->isRunning()) {
+            unsigned long secRemaining = motorControl->getSecondsRemaining();
+
+            int minutes = secRemaining / 60;
+            int secRemand = secRemaining % 60;
+
+            struct TimeStorage ts = menuRunTime.getTime();
+            if (ts.seconds != secRemand || ts.minutes != minutes) {
+                ts.seconds = secRemand;
+                ts.minutes = minutes;
+                menuRunTime.setTime(ts);
+                menuRunTime.changeOccurred(true);
+            }
+        } else {
+            struct TimeStorage ts = menuRunTime.getTime();
+            if (ts.seconds != 0) {
+                ts.seconds = 0;
+                ts.minutes = 0;
+                menuRunTime.setTime(ts);
+                menuRunTime.changeOccurred(true);
+            }
+        }
+
+
+        // Draw the Logo, Centered in the title bar, but only on the main screen
+        // If currentSubMenu is null, we are on the "home" screen... Show the centered icon.
+        if (menuMgr.getCurrentSubMenu() == nullptr) {
+            auto drawable = renderer.getDeviceDrawable();
+            drawable->setColors(RGB(255, 255, 255), RGB(0, 0, 0));
+            drawable->startDraw();
+            drawable->drawXBitmap(Coord(135, 0), Coord(50, 50), KiwiLogoWidIcon0);
+            drawable->endDraw();
+
+            drawable = renderer.getDeviceDrawable();
+            drawable->setColors(RGB(0, 0, 0), RGB(0, 0, 0));
+            drawable->drawBox(Coord(0, 238), Coord(320,2), true);
+            drawable->endDraw();
+
+        }
+
+        // Check for heat icon, if the heater is on, show the icon,  otherwise swap in the blank widget
+        if (platform->isHeaterEnabled()) {
+            if (HeatWidget.getCurrentState() != 1) {
+                HeatWidget.setCurrentState(1);
+            }
+        } else {
+            if (HeatWidget.getCurrentState() != 0) {
+                HeatWidget.setCurrentState(0);
+            }
         }
     }
 
@@ -189,7 +197,7 @@ void ui_tick() {
  * An error has been found.  Present a dialog to the user so they know what happened.
  */
 void motorErrorDialog(TMC5160::DriverStatus status) {
-    HALT = true;
+    DIALOG = true; // showing an error dialog, set so we dont keep trying to render the dialog over and over
     Serial.println("Stepper drive error detected, reports not ok");
     Serial.print("Current drive status: ");
     Serial.println(status);
@@ -222,15 +230,14 @@ void motorErrorDialog(TMC5160::DriverStatus status) {
         case TMC5160::CP_UV:
             strcpy(msg, "CP Under-volt");
             break;
-        case TMC5160::OTHER_ERR:
+        default:
             strcpy(msg, "Unknown TMC Error");
-            break;
     }
 
     BaseDialog *dlg = renderer.getDialog();
     if (dlg) {
         dlg->setButtons(BTNTYPE_NONE, BTNTYPE_CLOSE);
-        dlg->show(error, false);
+        dlg->show(error, false, doErrorHalt);
         dlg->copyIntoBuffer(msg);
     }
 }
@@ -510,7 +517,8 @@ void checkLongPress(bool direction, bool held) {
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {
         // what are we long pressing on?
-        if(menuMgr.findCurrentActive()->getId() == menuSpin.getId() || menuMgr.findCurrentActive()->getId() == menuWash.getId() ) {
+        if (menuMgr.findCurrentActive()->getId() == menuSpin.getId() ||
+            menuMgr.findCurrentActive()->getId() == menuWash.getId()) {
             if (platform->isHeaterEnabled()) {
                 // cancel preheat
                 platform->enableHeater(false);
@@ -605,5 +613,13 @@ void handleEncoderMove(bool direction, bool held) {
 //        }
 
     //}
+
+}
+
+/**
+ * Function to be called once the user tries to dismiss the error dialog.  Set halt flag.
+ */
+void doErrorHalt(ButtonType buttonPressed, void *yourData) {
+    HALT = true; // Stop the run loop.
 
 }
