@@ -27,6 +27,10 @@ void PicoPlatform::initializePlatform() {
     pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
+     // sounder output
+    pinMode(EXPANSION2, OUTPUT_8MA);
+    digitalWrite(EXPANSION2, LOW);
+
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);

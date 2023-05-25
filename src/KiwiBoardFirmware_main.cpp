@@ -17,6 +17,7 @@
 
 #include "icons.h"
 #include "MenuChangeObserver.h"
+#include "Sounder.h"
 
 // Version Number
 const char VERSION_NUM[] PROGMEM = "1.1.*-Test";
@@ -26,6 +27,7 @@ PicoPlatform *platform;
 MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
 EncoderShim *encoderShim;
+Sounder *sounderOps;
 
 // Error occurred, in HALT state.
 bool HALT = false;
@@ -383,6 +385,10 @@ void scheduleTasks() {
 
     // To prevent thrashing of the EEPROM, only save settings periodically if things were touched.
     taskManager.scheduleFixedRate(60, commit_if_needed, TIME_SECONDS);
+
+    // Sounder operation needs to be non-blocking so we update the status regularly
+    // Schedule sounder updates for every 50ms
+    //taskManager.scheduleFixedRate(50, sounderOps, TIME_MILLIS); 
 
     // Only schedule the screen capture if SCREENCAP is defined from platformio.ini
 #ifdef SCREENCAP
