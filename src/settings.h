@@ -25,6 +25,7 @@ struct SETTINGS
     int cooldownTime;
     int preheatTime;
     bool fanCooldown;
+    bool sounder;
 
     
 };

@@ -25,7 +25,6 @@ class Beep
         bool sounderactive;
         bool finished;
         bool beep_activate;
-        inline static bool block = 0;
 
 };
 
