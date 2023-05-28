@@ -28,7 +28,6 @@ MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
 EncoderShim *encoderShim;
 BeepHandler *sounderOps;
-//Beep *beep;
 
 // Error occurred, in HALT state.
 bool HALT = false;
@@ -69,7 +68,7 @@ void setup() {
     gfx.fillScreen(TFT_BLACK);
 
     // Setup Sounder
-    sounderOps = new BeepHandler();//delete?
+    sounderOps = new BeepHandler();
     sounderOps->initTone1();
     sounderOps->initTone2();
 
@@ -392,7 +391,7 @@ void scheduleTasks() {
     taskManager.scheduleFixedRate(60, commit_if_needed, TIME_SECONDS);
 
     // Sounder operation needs to be non-blocking so we update the status regularly
-    // Schedule sounder updates for every 20ms
+    // Schedule sounder updates for every 20ms to ensure granularity for short beeps
     taskManager.scheduleFixedRate(20, sounderOps, TIME_MILLIS); 
 
     // Only schedule the screen capture if SCREENCAP is defined from platformio.ini
