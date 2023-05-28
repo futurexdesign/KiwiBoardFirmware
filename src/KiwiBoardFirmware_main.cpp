@@ -10,6 +10,7 @@
 #include "KiwiBoardFirmware_main.h"
 #include "EncoderShim.h"
 #include "heat.h"
+#include "Sounder.h"
 
 #ifdef SCREENCAP
 #include "screenServer.h"
@@ -17,7 +18,6 @@
 
 #include "icons.h"
 #include "MenuChangeObserver.h"
-#include "Sounder.h"
 
 // Version Number
 const char VERSION_NUM[] PROGMEM = "1.1.*-Test";
@@ -27,7 +27,8 @@ PicoPlatform *platform;
 MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
 EncoderShim *encoderShim;
-Sounder *sounderOps;
+BeepHandler *sounderOps;
+//Beep *beep;
 
 // Error occurred, in HALT state.
 bool HALT = false;
@@ -66,6 +67,11 @@ void setup() {
 
     delay(2000);
     gfx.fillScreen(TFT_BLACK);
+
+    // Setup Sounder
+    sounderOps = new BeepHandler();//delete?
+    sounderOps->initTone1();
+    sounderOps->initTone2();
 
     // Setup switches and encoder?
     encoderShim = new EncoderShim();
@@ -118,7 +124,7 @@ void loop() {
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
-
+    sounderOps->beep_activate(0); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
 }
@@ -265,7 +271,6 @@ void run(int program, MenuItem *icon) {
         motorControl->stopMotion();
     } else {
         motorControl->startProgram(program, getSettings());
-
         setIconStopped(icon);
         observer->constrainToStopButton(icon);
     }
@@ -387,8 +392,8 @@ void scheduleTasks() {
     taskManager.scheduleFixedRate(60, commit_if_needed, TIME_SECONDS);
 
     // Sounder operation needs to be non-blocking so we update the status regularly
-    // Schedule sounder updates for every 50ms
-    //taskManager.scheduleFixedRate(50, sounderOps, TIME_MILLIS); 
+    // Schedule sounder updates for every 20ms
+    taskManager.scheduleFixedRate(20, sounderOps, TIME_MILLIS); 
 
     // Only schedule the screen capture if SCREENCAP is defined from platformio.ini
 #ifdef SCREENCAP

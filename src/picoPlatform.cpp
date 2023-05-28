@@ -27,9 +27,9 @@ void PicoPlatform::initializePlatform() {
     pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
-     // sounder output
-    pinMode(EXPANSION2, OUTPUT_8MA);
-    digitalWrite(EXPANSION2, LOW);
+     // Sounder output
+    pinMode(EXPANSION2, OUTPUT_12MA); // Expansion 1 already used by screenshot
+    digitalWrite(EXPANSION2, HIGH); // active LOW
 
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
@@ -112,6 +112,20 @@ bool PicoPlatform::isHeaterEnabled() {
 bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
 }
+
+/**
+ * Enable or disable the sounder output based on provided value. 
+ * Invert the status because the sounder is enabled on logic LOW.
+*/
+void PicoPlatform::enableSounder(bool activate) {
+
+    Serial.print("Sounder: ");
+    Serial.println(activate);
+    activate = !activate; // invert
+    digitalWrite(EXPANSION2, activate);
+    
+}
+
 
 /**
  * This is called by TaskManager periodically.   It's purpose is to perform any actions

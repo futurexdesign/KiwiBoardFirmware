@@ -65,6 +65,12 @@ class PicoPlatform : public Executable {
         */
         void enableMotor(bool activate);
 
+         /**
+         * Enable or disable the sounder. This is attached to  
+         * to the expansion header.  This is active HIGH.
+        */
+        void enableSounder(bool activate);
+
         /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
          *
