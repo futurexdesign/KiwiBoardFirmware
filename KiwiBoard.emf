@@ -489,6 +489,23 @@
       "defaultValue": "false",
       "item": {
         "naming": "ON_OFF",
+        "name": "Sound",
+        "variableName": "sounder",
+        "id": 49,
+        "eepromAddress": 97,
+        "functionName": "@soundChanged",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
+      "type": "boolItem",
+      "defaultValue": "false",
+      "item": {
+        "naming": "ON_OFF",
         "name": "Motor Test",
         "variableName": "motorTest",
         "id": 44,

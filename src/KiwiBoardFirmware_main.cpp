@@ -101,6 +101,9 @@ void setup() {
        setupMenu();
     }
 
+    // Get saved value for sounder..
+    sounderOps->soundset = menusounder.getBoolean();
+
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
 
@@ -108,6 +111,7 @@ void setup() {
 
     setMenuOptions();
     scheduleTasks();
+   
 }
 
 /**
@@ -345,6 +349,19 @@ void CALLBACK_FUNCTION stealthChopChange(int id) {
     motorControl->initMotionController(platform, menuGlobalScaler.getIntValueIncludingOffset(),
                                        menuIRun.getIntValueIncludingOffset(),
                                        menuStealthChop.getBoolean());
+
+    settingsChanged = true;
+}
+
+/**
+ * Callback when the user changes the sound setting.  
+ *
+ * @param id
+ */
+void CALLBACK_FUNCTION soundChanged(int id) {
+    Serial.println("Sound changed...  ");
+
+    sounderOps->soundset = menusounder.getBoolean();
 
     settingsChanged = true;
 }

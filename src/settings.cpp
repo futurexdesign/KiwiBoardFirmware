@@ -23,7 +23,6 @@ SETTINGS getSettings() {
     rtn.fanCooldown = menufanCooldown.getBoolean();
 
     rtn.preheatTime = menuMaxPreheat.getIntValueIncludingOffset();
-  //  rtn.sounder = menusounder.getIntValueIncOffsett();
 
     return rtn;
 }

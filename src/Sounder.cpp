@@ -5,22 +5,29 @@
 
 #include "Sounder.h"
 #include "picoPlatform.h"
+#include "KiwiBoardFirmware_menu.h"
 
 PicoPlatform *hardware;
 Beep beepobj[2];
+bool BeepHandler::soundset = 0;
 
-// Initialize the end of wash tone
+
 void BeepHandler::beep_activate(int tone) {
 
     int beep = tone;
-    beepobj[beep].beep_activate = 1;
-    Serial.println("BEEP ACTIVATED");
+    
+    if(soundset) {
+
+        beepobj[beep].beep_activate = 1;
+        Serial.println("Beep activated");
+
+    }
 
 }
 
+// Initialize the end of cycle tone
 void BeepHandler::initTone1() {
 
-    // Tone 0 // end of cycle sound
     beepobj[0].dot_length=110;
     beepobj[0].dash_length=1000;
     beepobj[0].space_length=130;
@@ -39,9 +46,9 @@ void BeepHandler::initTone1() {
     
 }
 
+// Initialize the button-press tone
 void BeepHandler::initTone2() {
 
-    // Tone1 // button press
     beepobj[1].dot_length = 50;
     beepobj[1].dash_length = 0;
     beepobj[1].space_length = 0;
@@ -57,7 +64,7 @@ void BeepHandler::initTone2() {
     Serial.println("Initialized Sounder tone 1");
     beepobj[1].beep_activate = 0;
     beepobj[1].sounderactive = 0;
-    
+
 }
 
 
@@ -133,4 +140,3 @@ void BeepHandler::status_update(int tone) {
         }
     }
 };
-

@@ -40,4 +40,6 @@ class BeepHandler : public Executable
     void status_update(int);
     void exec() override;
 
+    static bool soundset;
+
 };
