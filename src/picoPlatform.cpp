@@ -28,8 +28,8 @@ void PicoPlatform::initializePlatform() {
     digitalWrite(FAN_CTL, LOW);
 
      // Sounder output
-    pinMode(EXPANSION2, OUTPUT_12MA); // Expansion 1 already used by screenshot
-    digitalWrite(EXPANSION2, HIGH); // active LOW
+    pinMode(EXPANSION1, OUTPUT_12MA); // Expansion 1 already used by screenshot
+    digitalWrite(EXPANSION1, HIGH); // active LOW
 
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
