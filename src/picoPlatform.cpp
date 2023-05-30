@@ -56,7 +56,7 @@ void PicoPlatform::initializePlatform() {
 
 
     // screenshot button, active high
-    pinMode(EXPANSION1, INPUT_PULLDOWN);
+    //pinMode(EXPANSION1, INPUT_PULLDOWN);
 
     EEPROM.begin(768);
 }
@@ -122,7 +122,7 @@ void PicoPlatform::enableSounder(bool activate) {
     Serial.print("Sounder: ");
     Serial.println(activate);
     activate = !activate; // invert
-    digitalWrite(EXPANSION2, activate);
+    digitalWrite(EXPANSION1, activate);
     
 }
 
