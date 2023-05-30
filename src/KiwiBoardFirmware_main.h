@@ -56,4 +56,9 @@ void checkLongPress(bool direction, bool clicked);
 
 void handleEncoderMove(bool direction, bool held);
 
+/**
+ * Function to be called once the user tries to dismiss the error dialog.  Set halt flag.
+ */
+void doErrorHalt(ButtonType buttonPressed, void* yourData);
+
 #endif //KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
