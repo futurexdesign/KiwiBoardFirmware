@@ -69,7 +69,14 @@ class PicoPlatform : public Executable {
          * Enable or disable the sounder. This is attached to  
          * to the expansion header.  This is active HIGH.
         */
+
         void enableSounder(bool activate);
+
+        /*
+        
+        */
+        uint32_t pwm_set_freq_duty(uint slice_num,
+                     uint chan,uint32_t f, int d);
 
         /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
@@ -102,6 +109,9 @@ class PicoPlatform : public Executable {
          * This will output a PWM signal to LCD_BACKLIGHT
          */
         static void setBacklight(int value);
+
+        uint slice;
+        uint channel;
 
         bool isMotorEnabled();
         bool isHeaterEnabled();

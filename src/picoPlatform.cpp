@@ -6,6 +6,7 @@
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
+#include "hardware/pwm.h"
 
 /**
  * Initialize all IO on the Pico to the correct pins 
@@ -28,8 +29,18 @@ void PicoPlatform::initializePlatform() {
     digitalWrite(FAN_CTL, LOW);
 
      // Sounder output
-    pinMode(EXPANSION1, OUTPUT_12MA); // Expansion 1 already used by screenshot
+    pinMode(EXPANSION1, OUTPUT_12MA); 
     digitalWrite(EXPANSION1, HIGH); // active LOW
+    gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
+    uint slice=pwm_gpio_to_slice_num (EXPANSION1); 
+    uint channel=pwm_gpio_to_channel (EXPANSION1);
+    pwm_set_enabled (slice, true); 
+    pwm_set_freq_duty(slice, channel, 3000, 97);
+    pinMode(EXPANSION1, OUTPUT_12MA); 
+    // Toggle outputs to stop sounder output on init 
+    digitalWrite(EXPANSION1, LOW); // active LOW
+    digitalWrite(EXPANSION1, HIGH); // active LOW
+
 
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
@@ -121,9 +132,20 @@ void PicoPlatform::enableSounder(bool activate) {
 
     Serial.print("Sounder: ");
     Serial.println(activate);
-    activate = !activate; // invert
-    digitalWrite(EXPANSION1, activate);
+    //activate = !activate; // invert
+    //digitalWrite(EXPANSION1, activate);
+    if(!activate) {
+
+        pinMode(EXPANSION1, OUTPUT_12MA); // Expansion 1 already used by screenshot
+        digitalWrite(EXPANSION1, true);
+        //gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
+    }
+    else {
+    gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
+    pwm_set_enabled (slice, activate); 
+    }
     
+
 }
 
 
@@ -208,4 +230,20 @@ void PicoPlatform::startPreheat() {
     preheat_start = millis();
     preheat_end = preheat_start + (settings.preheatTime * 60000);
     in_preheat = true;
+}
+
+uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
+       uint chan,uint32_t f, int d)
+{
+ uint32_t clock = 125000000;
+ uint32_t divider16 = clock / f / 4096 + 
+                           (clock % (f * 4096) != 0);
+ if (divider16 / 16 == 0)
+ divider16 = 16;
+ uint32_t wrap = clock * 16 / divider16 / f - 1;
+ pwm_set_clkdiv_int_frac(slice_num, divider16/16,
+                                     divider16 & 0xF);
+ pwm_set_wrap(slice_num, wrap);
+ pwm_set_chan_level(slice_num, chan, wrap * d / 100);
+ return wrap;
 }
