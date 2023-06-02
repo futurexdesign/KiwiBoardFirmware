@@ -6,7 +6,9 @@
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
+#include "hardware/pwm.h"
 
+uint slice = 0;
 /**
  * Initialize all IO on the Pico to the correct pins 
 */
@@ -28,8 +30,12 @@ void PicoPlatform::initializePlatform() {
     digitalWrite(FAN_CTL, LOW);
 
      // Sounder output
-    pinMode(EXPANSION1, OUTPUT_12MA); // Expansion 1 already used by screenshot
-    digitalWrite(EXPANSION1, HIGH); // active LOW
+    //pinMode(EXPANSION1, OUTPUT_12MA);
+    //digitalWrite(EXPANSION1, HIGH); // active LOW
+    //gpio_set_function(EXPANSION1, GPIO_FUNC_PWM); // Set GPIO to PWM mode
+    //slice=pwm_gpio_to_slice_num (EXPANSION1); // Get PWM slice 
+    //uint channel=pwm_gpio_to_channel (EXPANSION1); // Get PWM channel
+    //pwm_set_freq_duty(slice, channel, 3000,92); // Set frequency to 150hz, duty cycle to ?? inverted i.e. 100% = off 
 
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
@@ -56,7 +62,7 @@ void PicoPlatform::initializePlatform() {
 
 
     // screenshot button, active high
-    //pinMode(EXPANSION1, INPUT_PULLDOWN);
+    pinMode(EXPANSION4, INPUT_PULLDOWN);
 
     EEPROM.begin(768);
 }
@@ -113,17 +119,35 @@ bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
 }
 
+void PicoPlatform::toggleSounder() {
+
+    enableSounder(true);
+    enableSounder(false);
+
+}
+
 /**
  * Enable or disable the sounder output based on provided value. 
  * Invert the status because the sounder is enabled on logic LOW.
 */
 void PicoPlatform::enableSounder(bool activate) {
 
-    Serial.print("Sounder: ");
-    Serial.println(activate);
-    activate = !activate; // invert
-    digitalWrite(EXPANSION1, activate);
-    
+/** Due to the undetermined state of the GPIO pin when PWM is disabled,
+ *  we need to initialize GPIO as normal output ACTIVE HIGH when beep is off 
+ *  and reinitialize PWM output when beep is switched on. 
+*/
+    if(activate) {
+        gpio_set_function(EXPANSION1, GPIO_FUNC_PWM); // Set GPIO to PWM mode
+        slice=pwm_gpio_to_slice_num (EXPANSION1); // Get PWM slice 
+        uint channel=pwm_gpio_to_channel (EXPANSION1); // Get PWM channel
+        pwm_set_freq_duty(slice, channel, 3000,95); // Set frequency to 150hz, duty cycle to ?? inverted i.e. 100% = off 
+        pwm_set_enabled (slice, activate);
+    }
+
+    if(!activate) {
+     pinMode(EXPANSION1, OUTPUT_12MA);
+     digitalWrite(EXPANSION1, HIGH); // active LOW
+    }
 }
 
 
@@ -208,4 +232,20 @@ void PicoPlatform::startPreheat() {
     preheat_start = millis();
     preheat_end = preheat_start + (settings.preheatTime * 60000);
     in_preheat = true;
+}
+
+uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
+       uint chan,uint32_t f, int d) {
+
+    uint32_t clock = 125000000;
+    uint32_t divider16 = clock / f / 4096 + 
+                 (clock % (f * 4096) != 0);
+    if (divider16 / 16 == 0)
+        divider16 = 16;
+    uint32_t wrap = clock * 16 / divider16 / f - 1;
+    pwm_set_clkdiv_int_frac(slice_num, divider16/16,
+                 divider16 & 0xF);
+    pwm_set_wrap(slice_num, wrap);
+    pwm_set_chan_level(slice_num, chan, wrap * d / 100);
+    return wrap;
 }

@@ -72,6 +72,11 @@ class PicoPlatform : public Executable {
         void enableSounder(bool activate);
 
         /**
+         * 
+        */
+        void toggleSounder();
+
+        /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
          *
          * Look at the current configuration, if cooldown is enabled, calculate cooldown end, and start time
@@ -102,6 +107,13 @@ class PicoPlatform : public Executable {
          * This will output a PWM signal to LCD_BACKLIGHT
          */
         static void setBacklight(int value);
+
+        /**
+         * Set the PWM frequency and duty cycle
+        */
+
+        uint32_t pwm_set_freq_duty(uint slice_num,
+                                   uint chan,uint32_t f, int d);
 
         bool isMotorEnabled();
         bool isHeaterEnabled();

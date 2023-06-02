@@ -8,10 +8,21 @@
 
 #define SIZE 10
 
-class Beep 
+
+class BeepHandler : public Executable
+
 {
+
     public:
 
+    void beep_activate(int);
+    void status_update(int);
+    void exec() override;
+    void set_menuSound(bool);
+    bool get_menuSound();
+    BeepHandler(); // constructor declaration
+
+    struct tone {
         // Initialize the tone array (max 10 notes)
 
         constexpr static int sizearray = SIZE;
@@ -25,21 +36,10 @@ class Beep
         bool sounderactive;
         bool finished;
         bool beep_activate;
+    };
 
-};
-
-class BeepHandler : public Executable
-
-{
-
-    public:
-
-    void initTone1();
-    void initTone2();
-    void beep_activate(int);
-    void status_update(int);
-    void exec() override;
-
-    static bool soundset;
+    private: 
+    
+    static bool menuSound;
 
 };
