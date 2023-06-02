@@ -104,6 +104,8 @@ void setup() {
 
     // Get saved value for sounder..
     sounderOps->soundset = menusounder.getBoolean();
+    // Get saved level for sounder
+    platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
@@ -285,6 +287,14 @@ void run(int program, MenuItem *icon) {
         setIconStopped(icon);
         observer->constrainToStopButton(icon);
     }
+}
+
+void CALLBACK_FUNCTION soundLevel(int id) {
+
+    platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
+    sounderOps->beep_activate(1); // Sample sound
+    settingsChanged = true; // Save settings
+
 }
 
 void CALLBACK_FUNCTION settings_changed(int id) {

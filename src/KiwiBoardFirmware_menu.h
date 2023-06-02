@@ -31,6 +31,7 @@ extern GraphicsDeviceRenderer renderer;
 // Global Menu Item exports
 extern TextMenuItem menuVersion;
 extern BooleanMenuItem menumotorTest;
+extern AnalogMenuItem menuSoundLevel;
 extern BooleanMenuItem menusounder;
 extern BooleanMenuItem menuStealthChop;
 extern AnalogMenuItem menuIRun;
@@ -79,6 +80,7 @@ void CALLBACK_FUNCTION iRunChanged(int id);
 void CALLBACK_FUNCTION motortest(int id);
 void CALLBACK_FUNCTION settings_changed(int id);
 void CALLBACK_FUNCTION soundChanged(int id);
+void CALLBACK_FUNCTION soundLevel(int id);
 void CALLBACK_FUNCTION spin(int id);
 void CALLBACK_FUNCTION stealthChopChange(int id);
 void CALLBACK_FUNCTION wash(int id);

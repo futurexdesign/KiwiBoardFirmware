@@ -35,7 +35,7 @@ void PicoPlatform::initializePlatform() {
     uint slice=pwm_gpio_to_slice_num (EXPANSION1); 
     uint channel=pwm_gpio_to_channel (EXPANSION1);
     pwm_set_enabled (slice, true); 
-    pwm_set_freq_duty(slice, channel, 3000, 97);
+    pwm_set_freq_duty(slice, channel, 3000, sndLevel);// this needs to get saved changes
     pinMode(EXPANSION1, OUTPUT_12MA); 
     // Toggle outputs to stop sounder output on init 
     digitalWrite(EXPANSION1, LOW); // active LOW
@@ -160,6 +160,9 @@ void PicoPlatform::enableSounder(bool activate) {
  */
 void PicoPlatform::exec() {
 
+    // update sound level if changed in menu
+    pwm_set_freq_duty(slice, channel, 3000, sndLevel);// this needs to get saved changes
+
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
         Serial.println("Force fan on, heater on...");
@@ -246,4 +249,18 @@ uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
  pwm_set_wrap(slice_num, wrap);
  pwm_set_chan_level(slice_num, chan, wrap * d / 100);
  return wrap;
+}
+
+void PicoPlatform::set_sndLevel(int lev) {
+
+    //sndLevel = 100-lev; // invert percentage as 100 is full duty cycle=quietest 
+    // need to play with algorithm for levels - most changes only evident in first 10%
+    sndLevel = (0.3 * lev); // we do this to percentag-ize only first 30%
+    sndLevel = 100 - sndLevel;
+    Serial.print("Lev set to: ");
+    Serial.println(lev);
+    Serial.print("Soundlevel set to: ");
+    Serial.println(sndLevel);
+
+    //Serial.println(30/100);
 }

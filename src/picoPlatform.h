@@ -78,6 +78,8 @@ class PicoPlatform : public Executable {
         uint32_t pwm_set_freq_duty(uint slice_num,
                      uint chan,uint32_t f, int d);
 
+        void set_sndLevel(int);
+
         /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
          *
@@ -129,5 +131,7 @@ class PicoPlatform : public Executable {
         unsigned long cooldown_end; // when should a cooldown stop.
         unsigned long preheat_start;
         unsigned long preheat_end;
+
+        int sndLevel;
 
 };

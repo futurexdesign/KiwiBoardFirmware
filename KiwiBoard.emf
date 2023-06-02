@@ -502,6 +502,27 @@
     },
     {
       "parentId": 30,
+      "type": "analogItem",
+      "defaultValue": "0",
+      "item": {
+        "maxValue": 100,
+        "offset": 0,
+        "divisor": 1,
+        "unitName": "%",
+        "step": 1,
+        "name": "Sound Level",
+        "variableName": "SoundLevel",
+        "id": 50,
+        "eepromAddress": 98,
+        "functionName": "@soundLevel",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 30,
       "type": "boolItem",
       "defaultValue": "false",
       "item": {
