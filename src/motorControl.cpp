@@ -283,7 +283,10 @@ unsigned long MotorControl::getSecondsRemaining() {
 
     unsigned long rtn = 0;
     if (state.isRunning) {
-        rtn = (state.run_end - millis()) / 1000;
+            if(state.run_end > millis()) // Need to stop 'negative' result 
+                rtn = ((state.run_end - millis()) / 1000);
+            else
+                rtn = 0;
     }
 
     return rtn;
