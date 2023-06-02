@@ -52,7 +52,7 @@ void setIconStopped(MenuItem* icon);
 
 void resetIcons();
 
-void checkLongPress(bool direction, bool clicked);
+void handleButtonPress(bool direction, bool clicked);
 
 void handleEncoderMove(bool direction, bool held);
 

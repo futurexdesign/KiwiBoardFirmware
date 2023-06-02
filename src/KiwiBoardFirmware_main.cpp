@@ -69,15 +69,13 @@ void setup() {
     gfx.fillScreen(TFT_BLACK);
 
     // Setup Sounder
-    sounderOps = new BeepHandler();
-    sounderOps->initTone1();
-    sounderOps->initTone2();
+    sounderOps = new BeepHandler(platform);
 
     // Setup switches and encoder?
     encoderShim = new EncoderShim();
     encoderShim->initForEncoder();
     encoderShim->registerChangeCallback(handleEncoderMove);
-    encoderShim->registerClickCallback(checkLongPress);
+    encoderShim->registerClickCallback(handleButtonPress);
 
     menuRunTime.setReadOnly(true);
     setupMenu();
@@ -103,7 +101,7 @@ void setup() {
     }
 
     // Get saved value for sounder..
-    sounderOps->soundset = menusounder.getBoolean();
+    sounderOps->setSoundEnabled(menusounder.getBoolean());
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
@@ -369,7 +367,7 @@ void CALLBACK_FUNCTION stealthChopChange(int id) {
 void CALLBACK_FUNCTION soundChanged(int id) {
     Serial.println("Sound changed...  ");
 
-    sounderOps->soundset = menusounder.getBoolean();
+    sounderOps->setSoundEnabled(menusounder.getBoolean());
 
     settingsChanged = true;
 }
@@ -540,7 +538,17 @@ void setIconStopped(MenuItem *icon) {
     tcgfx::ConfigurableItemDisplayPropertiesFactory::refreshCache();
 }
 
-void checkLongPress(bool direction, bool held) {
+/**
+ * Handle a button press, as triggered by EncoderShim
+ *
+ * @param direction Direction of rotation
+ * @param held True if button was a long press.
+ */
+void handleButtonPress(bool direction, bool held) {
+
+    // Trigger a button beep.
+    sounderOps->beep_activate(1); // 1 = Push button tone
+
 
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {
