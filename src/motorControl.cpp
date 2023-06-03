@@ -4,7 +4,6 @@
 
 #include "motorControl.h"
 #include "picoPlatform.h"
-#include "Sounder.h"
 
 void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
     this->platform = curPlatform; // Set the current platform.

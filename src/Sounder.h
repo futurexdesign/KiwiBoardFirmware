@@ -5,6 +5,7 @@
 
 #pragma once
 #include <TaskManagerIO.h>
+#include "picoPlatform.h"
 
 #define SIZE 10
 
@@ -20,13 +21,12 @@ class BeepHandler : public Executable
     void exec() override;
     void set_menuSound(bool);
     bool get_menuSound();
-    BeepHandler(); // constructor declaration
+    BeepHandler(PicoPlatform *platform); // constructor declaration (receives pointer to platform object)
 
     struct tone {
         // Initialize the tone array (max 10 notes)
 
-        constexpr static int sizearray = SIZE;
-        int tones[sizearray] = {0}; 
+        int tones[SIZE] = {0}; 
 
         // Tones are either 'dots' or 'dashes' with specific length of time in mS
 
@@ -41,5 +41,6 @@ class BeepHandler : public Executable
     private: 
     
     static bool menuSound;
+    PicoPlatform *priv_platform;
 
 };

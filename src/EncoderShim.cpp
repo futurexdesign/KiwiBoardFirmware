@@ -4,9 +4,6 @@
 //
 
 #include "EncoderShim.h"
-#include "Sounder.h"
-
-extern BeepHandler *sounderOps; // Access external object sounderOps
 
 EncoderShim::EncoderShim() {
 
@@ -45,7 +42,6 @@ void EncoderShim::encoderHasChanged(int newValue) {
 
 void EncoderShim::onPressed(pinid_t pin, bool held) {
     Serial.println("button down");
-      sounderOps->beep_activate(1); // 1 = Push button tone
     if (encoderClickFn != nullptr) {
         encoderClickFn(false, held);
     }

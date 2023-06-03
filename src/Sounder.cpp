@@ -7,7 +7,8 @@
 #include "picoPlatform.h"
 #include "KiwiBoardFirmware_menu.h"
 
-extern PicoPlatform *platform; // Access external object platform
+//extern PicoPlatform *platform; // Access external object platform REMOVE
+PicoPlatform *priv_platform;
 BeepHandler::tone beepobj[2];
 bool BeepHandler::menuSound = false;
 
@@ -43,7 +44,7 @@ void BeepHandler::status_update(int tone) {
     // Turn on sounder for first time
     if(beepobj[tone].beep_activate && !beepobj[tone].sounderactive) {
 
-        platform->enableSounder(true);
+        priv_platform->enableSounder(true);
         beepobj[tone].sounderactive = true;
         beepobj[tone].beep_activate = false; // We've started so we don't want to start again
         beepobj[tone].start_millis = time_us_64() / 1000;
@@ -75,7 +76,7 @@ void BeepHandler::status_update(int tone) {
         // has tone finished?
         if(((time_us_64() / 1000) - beepobj[tone].start_millis) >= time) {
 
-            platform->enableSounder(false);
+            priv_platform->enableSounder(false);
             beepobj[tone].start_millis = time_us_64() / 1000;
             Serial.println("SOUNDER OFF");
 
@@ -93,9 +94,9 @@ void BeepHandler::status_update(int tone) {
             }
 
             if(beepobj[tone].tones[beepobj[tone].curr_tone] < 3 ) //space
-                platform->enableSounder(true);
+                priv_platform->enableSounder(true);
             else
-                platform->enableSounder(false); 
+                priv_platform->enableSounder(false); 
 
         }
     }
@@ -115,8 +116,10 @@ bool BeepHandler::get_menuSound() {
 
 // BeepHandler constructor
 
-BeepHandler::BeepHandler() {
+BeepHandler::BeepHandler(PicoPlatform *platform) {
 
+    this->priv_platform = platform;
+    
     // Tone for end of cycle
 
     beepobj[0].dot_length=110;

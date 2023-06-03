@@ -68,7 +68,7 @@ void setup() {
     gfx.fillScreen(TFT_BLACK);
 
     // Setup Sounder
-    sounderOps = new BeepHandler(); // Instantiate object sounderOps based on BeepHandler
+    sounderOps = new BeepHandler(platform); // Instantiate object sounderOps based on BeepHandler
     platform->toggleSounder(); // Need to toggle PWM output to turn off sound initially ABSTRACT TO BeepHandler
 
     // Setup switches and encoder?
@@ -539,7 +539,10 @@ void setIconStopped(MenuItem *icon) {
 }
 
 void checkLongPress(bool direction, bool held) {
-
+    
+    // Button pressed, so we beep
+    sounderOps->beep_activate(1); // 1 = Push button tone
+    
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {
         // what are we long pressing on?
