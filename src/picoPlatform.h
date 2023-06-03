@@ -73,11 +73,14 @@ class PicoPlatform : public Executable {
         void enableSounder(bool activate);
 
         /*
-        
+        * Setup PWM for Pico GPIO pins
         */
         uint32_t pwm_set_freq_duty(uint slice_num,
-                     uint chan,uint32_t f, int d);
+                    uint chan,uint32_t f, int d);
 
+        /*
+        * Set the sound level
+        */
         void set_sndLevel(int);
 
         /**
@@ -112,9 +115,6 @@ class PicoPlatform : public Executable {
          */
         static void setBacklight(int value);
 
-        uint slice;
-        uint channel;
-
         bool isMotorEnabled();
         bool isHeaterEnabled();
         bool isFanEnabled();
@@ -126,6 +126,9 @@ class PicoPlatform : public Executable {
         bool heater_enabled = false;
         bool fan_enabled = false;
         bool led = false; // used for heartbeat.
+
+        uint slice;
+        uint channel;
 
         unsigned long cooldown_start; // when did a cooldown start.
         unsigned long cooldown_end; // when should a cooldown stop.

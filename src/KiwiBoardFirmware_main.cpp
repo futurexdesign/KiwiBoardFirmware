@@ -104,6 +104,7 @@ void setup() {
 
     // Get saved value for sounder..
     sounderOps->soundset = menusounder.getBoolean();
+    
     // Get saved level for sounder
     platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
 
@@ -292,8 +293,7 @@ void run(int program, MenuItem *icon) {
 void CALLBACK_FUNCTION soundLevel(int id) {
 
     platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
-    sounderOps->clickSnd = 1;
-    sounderOps->beep_activate(1,1); // Sample sound, override soundset var
+    sounderOps->beep_activate(1,true); // Sample sound, override soundset var
     settingsChanged = true; // Save settings
 
 }

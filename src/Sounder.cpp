@@ -10,7 +10,6 @@
 PicoPlatform *hardware;
 Beep beepobj[2];
 bool BeepHandler::soundset = 0;
-bool BeepHandler::clickSnd = 0;//XXXXXXXXXXXXXXXXXXXXX
 
 
 void BeepHandler::beep_activate(int tone, bool o_ride) {

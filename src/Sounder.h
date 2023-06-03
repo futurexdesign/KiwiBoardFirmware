@@ -41,6 +41,5 @@ class BeepHandler : public Executable
     void exec() override;
 
     static bool soundset;
-    static bool clickSnd;//xxxxxxxxxxxxxxxxxxxxxx
 
 };

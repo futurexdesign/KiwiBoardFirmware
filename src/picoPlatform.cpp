@@ -28,17 +28,22 @@ void PicoPlatform::initializePlatform() {
     pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
-     // Sounder output
-    pinMode(EXPANSION1, OUTPUT_12MA); 
+    // Sounder output   
+
+    // Initially set boolean  output to stop sounder during boot
+    pinMode(EXPANSION1, OUTPUT_12MA);
     digitalWrite(EXPANSION1, HIGH); // active LOW
+
+    // Setup PWM funcionality 
     gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
     uint slice=pwm_gpio_to_slice_num (EXPANSION1); 
     uint channel=pwm_gpio_to_channel (EXPANSION1);
     pwm_set_enabled (slice, true); 
-    pwm_set_freq_duty(slice, channel, 3000, sndLevel);// this needs to get saved changes
-    pinMode(EXPANSION1, OUTPUT_12MA); 
-    // Toggle outputs to stop sounder output on init 
-    digitalWrite(EXPANSION1, LOW); // active LOW
+
+    // Set parameters for frequency and duty cycle
+    pwm_set_freq_duty(slice, channel, 3000, sndLevel); 
+
+    // Activate output after PWM init to stop sounder output on boot
     digitalWrite(EXPANSION1, HIGH); // active LOW
 
 
@@ -129,23 +134,20 @@ bool PicoPlatform::isMotorEnabled() {
  * Invert the status because the sounder is enabled on logic LOW.
 */
 void PicoPlatform::enableSounder(bool activate) {
-
-    Serial.print("Sounder: ");
-    Serial.println(activate);
-    //activate = !activate; // invert
-    //digitalWrite(EXPANSION1, activate);
+   
     if(!activate) {
 
         pinMode(EXPANSION1, OUTPUT_12MA); // Expansion 1 already used by screenshot
         digitalWrite(EXPANSION1, true);
-        //gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
     }
+
     else {
+
     gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
     pwm_set_enabled (slice, activate); 
+
     }
     
-
 }
 
 
@@ -253,14 +255,14 @@ uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
 
 void PicoPlatform::set_sndLevel(int lev) {
 
-    //sndLevel = 100-lev; // invert percentage as 100 is full duty cycle=quietest 
-    // need to play with algorithm for levels - most changes only evident in first 10%
-    sndLevel = (0.3 * lev); // we do this to percentag-ize only first 30%
+    // Level 100 is full duty cycle and the most quiet output (inverted sounder I/P)
+    // We focus the percentage range on last 30% of the duty cycle variable(betweem 70 and 100) 
+    // as this anything below 70 is at full volume anyway
+    sndLevel = (0.3 * lev); 
     sndLevel = 100 - sndLevel;
     Serial.print("Lev set to: ");
     Serial.println(lev);
     Serial.print("Soundlevel set to: ");
     Serial.println(sndLevel);
 
-    //Serial.println(30/100);
 }
