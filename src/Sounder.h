@@ -36,10 +36,11 @@ class BeepHandler : public Executable
 
     void initTone1();
     void initTone2();
-    void beep_activate(int);
+    void beep_activate(int, bool);
     void status_update(int);
     void exec() override;
 
     static bool soundset;
+    static bool clickSnd;//xxxxxxxxxxxxxxxxxxxxxx
 
 };

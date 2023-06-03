@@ -10,17 +10,20 @@
 PicoPlatform *hardware;
 Beep beepobj[2];
 bool BeepHandler::soundset = 0;
+bool BeepHandler::clickSnd = 0;//XXXXXXXXXXXXXXXXXXXXX
 
 
-void BeepHandler::beep_activate(int tone) {
+void BeepHandler::beep_activate(int tone, bool o_ride) {
 
     int beep = tone;
     
-    if(soundset) {
+    if(soundset || o_ride) {
 
-        beepobj[beep].beep_activate = 1;
-        Serial.println("Beep activated");
-
+        // Stop level menu clicks retriggering sounder before existing beep ended
+        if(!beepobj[beep].sounderactive) { 
+            beepobj[beep].beep_activate = 1;
+            Serial.println("Beep activated");
+        }
     }
 
 }

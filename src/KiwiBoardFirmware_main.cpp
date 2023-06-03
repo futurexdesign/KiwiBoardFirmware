@@ -130,7 +130,7 @@ void loop() {
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
-    sounderOps->beep_activate(0); // 0 = End of cycle tone
+    sounderOps->beep_activate(0,0); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
 }
@@ -292,7 +292,8 @@ void run(int program, MenuItem *icon) {
 void CALLBACK_FUNCTION soundLevel(int id) {
 
     platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
-    sounderOps->beep_activate(1); // Sample sound
+    sounderOps->clickSnd = 1;
+    sounderOps->beep_activate(1,1); // Sample sound, override soundset var
     settingsChanged = true; // Save settings
 
 }

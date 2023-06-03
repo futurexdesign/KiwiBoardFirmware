@@ -45,7 +45,7 @@ void EncoderShim::encoderHasChanged(int newValue) {
 
 void EncoderShim::onPressed(pinid_t pin, bool held) {
     Serial.println("button down");
-      sounder->beep_activate(1); // 0 = Push button tone
+      sounder->beep_activate(1,0); // 0 = Push button tone no override of soundset
     if (encoderClickFn != nullptr) {
         encoderClickFn(false, held);
     }
