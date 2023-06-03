@@ -126,7 +126,7 @@ void loop() {
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
-    sounderOps->beep_activate(0); // 0 = End of cycle tone
+    sounderOps->beep_activate(false); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
 }
@@ -541,7 +541,7 @@ void setIconStopped(MenuItem *icon) {
 void checkLongPress(bool direction, bool held) {
     
     // Button pressed, so we beep
-    sounderOps->beep_activate(1); // 1 = Push button tone
+    sounderOps->beep_activate(true);
     
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {
