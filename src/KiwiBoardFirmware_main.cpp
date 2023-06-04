@@ -27,7 +27,7 @@ PicoPlatform *platform;
 MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
 EncoderShim *encoderShim;
-BeepHandler *sounderOps;
+BeepHandler *sounderOps; // Declare sounderOps (based on class BeepHandler)
 
 // Error occurred, in HALT state.
 bool HALT = false;
@@ -57,7 +57,6 @@ void setup() {
     platform = new PicoPlatform();
     platform->initializePlatform();
 
-
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
     gfx.setRotation(3);
@@ -69,9 +68,8 @@ void setup() {
     gfx.fillScreen(TFT_BLACK);
 
     // Setup Sounder
-    sounderOps = new BeepHandler();
-    sounderOps->initTone1();
-    sounderOps->initTone2();
+    sounderOps = new BeepHandler(platform); // Instantiate object sounderOps based on BeepHandler
+    platform->toggleSounder(); // Need to toggle PWM output to turn off sound initially ABSTRACT TO BeepHandler
 
     // Setup switches and encoder?
     encoderShim = new EncoderShim();
@@ -103,10 +101,7 @@ void setup() {
     }
 
     // Get saved value for sounder..
-    sounderOps->soundset = menusounder.getBoolean();
-    
-    // Get saved level for sounder
-    platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
+    sounderOps->set_menuSound(menusounder.getBoolean());    
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
@@ -115,7 +110,7 @@ void setup() {
 
     setMenuOptions();
     scheduleTasks();
-   
+
 }
 
 /**
@@ -131,7 +126,7 @@ void loop() {
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
-    sounderOps->beep_activate(0,0); // 0 = End of cycle tone
+    sounderOps->beep_activate(false,0); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
 }
@@ -380,7 +375,7 @@ void CALLBACK_FUNCTION stealthChopChange(int id) {
 void CALLBACK_FUNCTION soundChanged(int id) {
     Serial.println("Sound changed...  ");
 
-    sounderOps->soundset = menusounder.getBoolean();
+    sounderOps->set_menuSound(menusounder.getBoolean());
 
     settingsChanged = true;
 }
@@ -552,7 +547,10 @@ void setIconStopped(MenuItem *icon) {
 }
 
 void checkLongPress(bool direction, bool held) {
-
+    
+    // Button pressed, so we beep
+    sounderOps->beep_activate(true);
+    
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {
         // what are we long pressing on?

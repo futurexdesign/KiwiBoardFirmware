@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "hardware/pwm.h"
 
+uint slice = 0;
 /**
  * Initialize all IO on the Pico to the correct pins 
 */
@@ -72,7 +73,7 @@ void PicoPlatform::initializePlatform() {
 
 
     // screenshot button, active high
-    //pinMode(EXPANSION1, INPUT_PULLDOWN);
+    pinMode(EXPANSION4, INPUT_PULLDOWN);
 
     EEPROM.begin(768);
 }
@@ -127,6 +128,13 @@ bool PicoPlatform::isHeaterEnabled() {
 
 bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
+}
+
+void PicoPlatform::toggleSounder() {
+
+    enableSounder(true);
+    enableSounder(false);
+
 }
 
 /**
