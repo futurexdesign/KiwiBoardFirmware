@@ -143,8 +143,8 @@ void PicoPlatform::enableSounder(bool activate) {
 
     else {
 
-    gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
-    pwm_set_enabled (slice, activate); 
+        gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
+        pwm_set_enabled (slice, activate); 
 
     }
     
