@@ -69,7 +69,6 @@ void setup() {
 
     // Setup Sounder
     sounderOps = new BeepHandler(platform); // Instantiate object sounderOps based on BeepHandler
-    platform->toggleSounder(); // Need to toggle PWM output to turn off sound initially ABSTRACT TO BeepHandler
 
     // Setup switches and encoder?
     encoderShim = new EncoderShim();
@@ -100,8 +99,9 @@ void setup() {
         setupMenu();
     }
 
-    // Get saved value for sounder..
-    sounderOps->set_menuSound(menusounder.getBoolean());    
+    // Get saved values for sounder and sound level..
+    sounderOps->set_menuSound(menusounder.getBoolean()); 
+    sounderOps->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());  
 
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
@@ -126,7 +126,7 @@ void loop() {
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
-    sounderOps->beep_activate(false,0); // 0 = End of cycle tone
+    sounderOps->beep_activate(0, false); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
 }
@@ -287,8 +287,11 @@ void run(int program, MenuItem *icon) {
 
 void CALLBACK_FUNCTION soundLevel(int id) {
 
-    platform->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
-    sounderOps->beep_activate(1,true); // Sample sound, override soundset var
+    // Get changes to sound level and then set
+    // beep for every turn of the encoder when setting sound level
+
+    sounderOps->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
+    sounderOps->beep_activate(1, true); // Short beep, override soundset var
     settingsChanged = true; // Save settings
 
 }
@@ -549,7 +552,7 @@ void setIconStopped(MenuItem *icon) {
 void checkLongPress(bool direction, bool held) {
     
     // Button pressed, so we beep
-    sounderOps->beep_activate(true);
+    sounderOps->beep_activate(1, false); // Short beep, no soundset override
     
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {

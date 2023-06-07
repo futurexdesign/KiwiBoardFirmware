@@ -17,7 +17,7 @@ void BeepHandler::beep_activate(int tone, bool o_ride) {
 
     int beep = tone;
     
-    if(menusound || o_ride) {
+    if(menuSound || o_ride) {
 
         // Stop level menu clicks retriggering sounder before existing beep ended
         if(!beepobj[beep].sounderactive) { 
@@ -157,5 +157,20 @@ BeepHandler::BeepHandler(PicoPlatform *platform) {
     Serial.println("Initialized Sounder tone 1");
     beepobj[1].beep_activate = false;
     beepobj[1].sounderactive = false;
+
+}
+
+void BeepHandler::set_sndLevel(int lev) {
+
+    // Level 100 is full duty cycle and the most quiet output (inverted sounder I/P)
+    // We focus the percentage range on last 30% of the duty cycle variable(betweem 70 and 100) 
+    // as anything below 70 is at full volume anyway
+    sndLevel = (0.3 * lev); 
+    sndLevel = 100 - sndLevel;
+    priv_platform->set_audioLevel(sndLevel);
+    Serial.print("Lev set to: ");
+    Serial.println(lev);
+    Serial.print("Soundlevel set to: ");
+    Serial.println(sndLevel);
 
 }

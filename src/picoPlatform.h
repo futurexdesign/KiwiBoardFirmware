@@ -79,14 +79,9 @@ class PicoPlatform : public Executable {
                     uint chan,uint32_t f, int d);
 
         /*
-        * Set the sound level
+        * Set new sound level
         */
-        void set_sndLevel(int);
-
-        /**
-         * 
-        */
-        void toggleSounder();
+        void set_audioLevel(int);
 
         /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
@@ -120,16 +115,10 @@ class PicoPlatform : public Executable {
          */
         static void setBacklight(int value);
 
-        /**
-         * Set the PWM frequency and duty cycle
-        */
-
-        uint32_t pwm_set_freq_duty(uint slice_num,
-                                   uint chan,uint32_t f, int d);
-
         bool isMotorEnabled();
         bool isHeaterEnabled();
         bool isFanEnabled();
+    
 
     private:
         bool in_preheat = false;

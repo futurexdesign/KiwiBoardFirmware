@@ -16,11 +16,13 @@ class BeepHandler : public Executable
 
     public:
 
-    void beep_activate(int);
+    void beep_activate(int, bool);
     void status_update(int);
     void exec() override;
     void set_menuSound(bool);
     bool get_menuSound();
+    void set_sndLevel(int);
+    
     BeepHandler(PicoPlatform *platform); // constructor declaration (receives pointer to platform object)
 
     struct tone {
@@ -41,6 +43,7 @@ class BeepHandler : public Executable
     private: 
     
     static bool menuSound;
+    int sndLevel;
     PicoPlatform *priv_platform;
 
 };

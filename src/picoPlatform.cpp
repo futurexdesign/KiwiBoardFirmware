@@ -8,6 +8,8 @@
 #include "settings.h"
 #include "hardware/pwm.h"
 
+#define FREQ 3000
+
 uint slice = 0;
 /**
  * Initialize all IO on the Pico to the correct pins 
@@ -39,11 +41,11 @@ void PicoPlatform::initializePlatform() {
     gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
     uint slice=pwm_gpio_to_slice_num (EXPANSION1); 
     uint channel=pwm_gpio_to_channel (EXPANSION1);
-    pwm_set_enabled (slice, true); 
 
     // Set parameters for frequency and duty cycle
-    pwm_set_freq_duty(slice, channel, 3000, sndLevel); 
-
+    pwm_set_freq_duty(slice, channel, FREQ, sndLevel); 
+    pwm_set_enabled (slice, true); 
+    
     // Activate output after PWM init to stop sounder output on boot
     digitalWrite(EXPANSION1, HIGH); // active LOW
 
@@ -130,13 +132,6 @@ bool PicoPlatform::isMotorEnabled() {
     return motor_enabled;
 }
 
-void PicoPlatform::toggleSounder() {
-
-    enableSounder(true);
-    enableSounder(false);
-
-}
-
 /**
  * Enable or disable the sounder output based on provided value. 
  * Invert the status because the sounder is enabled on logic LOW.
@@ -145,8 +140,9 @@ void PicoPlatform::enableSounder(bool activate) {
    
     if(!activate) {
 
-        pinMode(EXPANSION1, OUTPUT_12MA); // Expansion 1 already used by screenshot
+        pinMode(EXPANSION1, OUTPUT_12MA); 
         digitalWrite(EXPANSION1, true);
+
     }
 
     else {
@@ -171,7 +167,7 @@ void PicoPlatform::enableSounder(bool activate) {
 void PicoPlatform::exec() {
 
     // update sound level if changed in menu
-    pwm_set_freq_duty(slice, channel, 3000, sndLevel);// this needs to get saved changes
+    pwm_set_freq_duty(slice, channel, FREQ, sndLevel);// pass any saved changes to sound level
 
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
@@ -248,29 +244,21 @@ void PicoPlatform::startPreheat() {
 uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
        uint chan,uint32_t f, int d)
 {
- uint32_t clock = 125000000;
- uint32_t divider16 = clock / f / 4096 + 
+    uint32_t clock = 125000000;
+    uint32_t divider16 = clock / f / 4096 + 
                            (clock % (f * 4096) != 0);
- if (divider16 / 16 == 0)
- divider16 = 16;
- uint32_t wrap = clock * 16 / divider16 / f - 1;
- pwm_set_clkdiv_int_frac(slice_num, divider16/16,
+    if (divider16 / 16 == 0)
+    divider16 = 16;
+    uint32_t wrap = clock * 16 / divider16 / f - 1;
+    pwm_set_clkdiv_int_frac(slice_num, divider16/16,
                                      divider16 & 0xF);
- pwm_set_wrap(slice_num, wrap);
- pwm_set_chan_level(slice_num, chan, wrap * d / 100);
- return wrap;
+    pwm_set_wrap(slice_num, wrap);
+    pwm_set_chan_level(slice_num, chan, wrap * d / 100);
+    return wrap;
 }
 
-void PicoPlatform::set_sndLevel(int lev) {
+void PicoPlatform::set_audioLevel(int lev) {
 
-    // Level 100 is full duty cycle and the most quiet output (inverted sounder I/P)
-    // We focus the percentage range on last 30% of the duty cycle variable(betweem 70 and 100) 
-    // as this anything below 70 is at full volume anyway
-    sndLevel = (0.3 * lev); 
-    sndLevel = 100 - sndLevel;
-    Serial.print("Lev set to: ");
-    Serial.println(lev);
-    Serial.print("Soundlevel set to: ");
-    Serial.println(sndLevel);
+    sndLevel = lev;
 
 }
