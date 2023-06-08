@@ -20,7 +20,7 @@
 #include "MenuChangeObserver.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.2.0";
+const char VERSION_NUM[] PROGMEM = "1.2.1";
 
 
 PicoPlatform *platform;
@@ -181,12 +181,6 @@ void ui_tick() {
             drawable->startDraw();
             drawable->drawXBitmap(Coord(135, 0), Coord(50, 50), KiwiLogoWidIcon0);
             drawable->endDraw();
-
-            drawable = renderer.getDeviceDrawable();
-            drawable->setColors(RGB(0, 0, 0), RGB(0, 0, 0));
-            drawable->drawBox(Coord(0, 238), Coord(320,2), true);
-            drawable->endDraw();
-
         }
 
         // Check for heat icon, if the heater is on, show the icon,  otherwise swap in the blank widget
