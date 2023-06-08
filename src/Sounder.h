@@ -42,7 +42,7 @@ class BeepHandler : public Executable
 
     private: 
     
-    static bool menuSound;
+    bool menuSound;
     int sndLevel;
     PicoPlatform *priv_platform;
 

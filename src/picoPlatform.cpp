@@ -241,6 +241,11 @@ void PicoPlatform::startPreheat() {
     in_preheat = true;
 }
 
+/*
+*   Initialize PWM for the 'slice' and 'channel' associated with the GPIO we ar using 
+*   Set the duty cycle and frequency required
+*/
+
 uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
        uint chan,uint32_t f, int d)
 {

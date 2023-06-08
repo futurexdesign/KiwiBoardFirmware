@@ -510,7 +510,7 @@
         "divisor": 1,
         "unitName": "%",
         "step": 1,
-        "name": "Sound Level",
+        "name": "Volume",
         "variableName": "SoundLevel",
         "id": 50,
         "eepromAddress": 98,

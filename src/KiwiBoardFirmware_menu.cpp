@@ -24,7 +24,7 @@ RENDERING_CALLBACK_NAME_INVOKE(fnVersionRtCall, textItemRenderFn, "Version", -1,
 TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, NULL);
 const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
 BooleanMenuItem menumotorTest(&minfomotorTest, false, &menuVersion, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfoSoundLevel = { "Sound Level", 50, 98, 100, soundLevel, 0, 1, "%" };
+const AnalogMenuInfo minfoSoundLevel = { "Volume", 50, 98, 100, soundLevel, 0, 1, "%" };
 AnalogMenuItem menuSoundLevel(&minfoSoundLevel, 0, &menumotorTest, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfosounder = { "Sound", 49, 97, 1, soundChanged, NAMING_ON_OFF };
 BooleanMenuItem menusounder(&minfosounder, false, &menuSoundLevel, INFO_LOCATION_PGM);

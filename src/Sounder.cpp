@@ -7,11 +7,7 @@
 #include "picoPlatform.h"
 #include "KiwiBoardFirmware_menu.h"
 
-//extern PicoPlatform *platform; // Access external object platform REMOVE
-PicoPlatform *priv_platform;
 BeepHandler::tone beepobj[2];
-bool BeepHandler::menuSound = false;
-
 
 void BeepHandler::beep_activate(int tone, bool o_ride) {
 
@@ -121,6 +117,7 @@ bool BeepHandler::get_menuSound() {
 BeepHandler::BeepHandler(PicoPlatform *platform) {
 
     this->priv_platform = platform;
+    menuSound = false;
     
     // Tone for end of cycle
 
