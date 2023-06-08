@@ -6,7 +6,11 @@
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
+#include "hardware/pwm.h"
 
+#define FREQ 3000
+
+uint slice = 0;
 /**
  * Initialize all IO on the Pico to the correct pins 
 */
@@ -26,6 +30,25 @@ void PicoPlatform::initializePlatform() {
 
     pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
+
+    // Sounder output   
+
+    // Initially set boolean  output to stop sounder during boot
+    pinMode(EXPANSION1, OUTPUT_12MA);
+    digitalWrite(EXPANSION1, HIGH); // active LOW
+
+    // Setup PWM funcionality 
+    gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
+    uint slice=pwm_gpio_to_slice_num (EXPANSION1); 
+    uint channel=pwm_gpio_to_channel (EXPANSION1);
+
+    // Set parameters for frequency and duty cycle
+    pwm_set_freq_duty(slice, channel, FREQ, sndLevel); 
+    pwm_set_enabled (slice, true); 
+    
+    // Activate output after PWM init to stop sounder output on boot
+    digitalWrite(EXPANSION1, HIGH); // active LOW
+
 
     // Turn on the LED
     pinMode(LED_BUILTIN, OUTPUT);
@@ -52,7 +75,7 @@ void PicoPlatform::initializePlatform() {
 
 
     // screenshot button, active high
-    pinMode(EXPANSION1, INPUT_PULLDOWN);
+    pinMode(EXPANSION4, INPUT_PULLDOWN);
 
     EEPROM.begin(768);
 }
@@ -110,6 +133,29 @@ bool PicoPlatform::isMotorEnabled() {
 }
 
 /**
+ * Enable or disable the sounder output based on provided value. 
+ * Invert the status because the sounder is enabled on logic LOW.
+*/
+void PicoPlatform::enableSounder(bool activate) {
+   
+    if(!activate) {
+
+        pinMode(EXPANSION1, OUTPUT_12MA); 
+        digitalWrite(EXPANSION1, true);
+
+    }
+
+    else {
+
+        gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
+        pwm_set_enabled (slice, activate); 
+
+    }
+    
+}
+
+
+/**
  * This is called by TaskManager periodically.   It's purpose is to perform any actions
  * required by the hardware platform.
  *
@@ -119,6 +165,9 @@ bool PicoPlatform::isMotorEnabled() {
  * - Perform the board heartbeat flash. (at least in dev firmware)
  */
 void PicoPlatform::exec() {
+
+    // update sound level if changed in menu
+    pwm_set_freq_duty(slice, channel, FREQ, sndLevel);// pass any saved changes to sound level
 
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
@@ -190,4 +239,31 @@ void PicoPlatform::startPreheat() {
     preheat_start = millis();
     preheat_end = preheat_start + (settings.preheatTime * 60000);
     in_preheat = true;
+}
+
+/*
+*   Initialize PWM for the 'slice' and 'channel' associated with the GPIO we ar using 
+*   Set the duty cycle and frequency required
+*/
+
+uint32_t PicoPlatform::pwm_set_freq_duty(uint slice_num,
+       uint chan,uint32_t f, int d)
+{
+    uint32_t clock = 125000000;
+    uint32_t divider16 = clock / f / 4096 + 
+                           (clock % (f * 4096) != 0);
+    if (divider16 / 16 == 0)
+    divider16 = 16;
+    uint32_t wrap = clock * 16 / divider16 / f - 1;
+    pwm_set_clkdiv_int_frac(slice_num, divider16/16,
+                                     divider16 & 0xF);
+    pwm_set_wrap(slice_num, wrap);
+    pwm_set_chan_level(slice_num, chan, wrap * d / 100);
+    return wrap;
+}
+
+void PicoPlatform::set_audioLevel(int lev) {
+
+    sndLevel = lev;
+
 }

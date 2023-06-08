@@ -65,6 +65,24 @@ class PicoPlatform : public Executable {
         */
         void enableMotor(bool activate);
 
+         /**
+         * Enable or disable the sounder. This is attached to  
+         * to the expansion header.  This is active HIGH.
+        */
+
+        void enableSounder(bool activate);
+
+        /*
+        * Setup PWM for Pico GPIO pins
+        */
+        uint32_t pwm_set_freq_duty(uint slice_num,
+                    uint chan,uint32_t f, int d);
+
+        /*
+        * Set new sound level
+        */
+        void set_audioLevel(int);
+
         /**
          * Start an optional cooldown.  Should be triggered by motion control when the dry cycle ends
          *
@@ -100,6 +118,7 @@ class PicoPlatform : public Executable {
         bool isMotorEnabled();
         bool isHeaterEnabled();
         bool isFanEnabled();
+    
 
     private:
         bool in_preheat = false;
@@ -109,9 +128,14 @@ class PicoPlatform : public Executable {
         bool fan_enabled = false;
         bool led = false; // used for heartbeat.
 
+        uint slice;
+        uint channel;
+
         unsigned long cooldown_start; // when did a cooldown start.
         unsigned long cooldown_end; // when should a cooldown stop.
         unsigned long preheat_start;
         unsigned long preheat_end;
+
+        int sndLevel;
 
 };

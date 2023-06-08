@@ -10,6 +10,7 @@
 #include "KiwiBoardFirmware_main.h"
 #include "EncoderShim.h"
 #include "heat.h"
+#include "Sounder.h"
 
 #ifdef SCREENCAP
 #include "screenServer.h"
@@ -26,6 +27,7 @@ PicoPlatform *platform;
 MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
 EncoderShim *encoderShim;
+BeepHandler *sounderOps; // Declare sounderOps (based on class BeepHandler)
 
 // Error occurred, in HALT state.
 bool HALT = false;
@@ -55,7 +57,6 @@ void setup() {
     platform = new PicoPlatform();
     platform->initializePlatform();
 
-
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
     gfx.setRotation(3);
@@ -65,6 +66,9 @@ void setup() {
 
     delay(2000);
     gfx.fillScreen(TFT_BLACK);
+
+    // Setup Sounder
+    sounderOps = new BeepHandler(platform); // Instantiate object sounderOps based on BeepHandler
 
     // Setup switches and encoder?
     encoderShim = new EncoderShim();
@@ -95,6 +99,10 @@ void setup() {
         setupMenu();
     }
 
+    // Get saved values for sounder and sound level..
+    sounderOps->set_menuSound(menusounder.getBoolean()); 
+    sounderOps->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());  
+
     observer = new MenuChangeObserver(&menuMgr, &menuRunTime, &menuWash);
     menuMgr.addChangeNotification(observer);
 
@@ -102,6 +110,7 @@ void setup() {
 
     setMenuOptions();
     scheduleTasks();
+
 }
 
 /**
@@ -117,6 +126,7 @@ void loop() {
 void stoppedCallback(int pgm) {
 
     // Stopped happened.
+    sounderOps->beep_activate(0, false); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
 }
@@ -270,10 +280,20 @@ void run(int program, MenuItem *icon) {
         motorControl->stopMotion();
     } else {
         motorControl->startProgram(program, getSettings());
-
         setIconStopped(icon);
         observer->constrainToStopButton(icon);
     }
+}
+
+void CALLBACK_FUNCTION soundLevel(int id) {
+
+    // Get changes to sound level and then set
+    // beep for every turn of the encoder when setting sound level
+
+    sounderOps->set_sndLevel(menuSoundLevel.getIntValueIncludingOffset());
+    sounderOps->beep_activate(1, true); // Short beep, override soundset var
+    settingsChanged = true; // Save settings
+
 }
 
 void CALLBACK_FUNCTION settings_changed(int id) {
@@ -351,6 +371,19 @@ void CALLBACK_FUNCTION stealthChopChange(int id) {
 }
 
 /**
+ * Callback when the user changes the sound setting.  
+ *
+ * @param id
+ */
+void CALLBACK_FUNCTION soundChanged(int id) {
+    Serial.println("Sound changed...  ");
+
+    sounderOps->set_menuSound(menusounder.getBoolean());
+
+    settingsChanged = true;
+}
+
+/**
  * Commit settings to eeprom if they have changed.  Try not to thrash the EEPROM with too many
  * calls.
  */
@@ -390,6 +423,10 @@ void scheduleTasks() {
 
     // To prevent thrashing of the EEPROM, only save settings periodically if things were touched.
     taskManager.scheduleFixedRate(60, commit_if_needed, TIME_SECONDS);
+
+    // Sounder operation needs to be non-blocking so we update the status regularly
+    // Schedule sounder updates for every 20ms to ensure granularity for short beeps
+    taskManager.scheduleFixedRate(20, sounderOps, TIME_MILLIS); 
 
     // Only schedule the screen capture if SCREENCAP is defined from platformio.ini
 #ifdef SCREENCAP
@@ -513,7 +550,10 @@ void setIconStopped(MenuItem *icon) {
 }
 
 void checkLongPress(bool direction, bool held) {
-
+    
+    // Button pressed, so we beep
+    sounderOps->beep_activate(1, false); // Short beep, no soundset override
+    
     // Check for a long press... no idea what menu ... but whatever?
     if (held) {
         // what are we long pressing on?
