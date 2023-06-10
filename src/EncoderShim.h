@@ -42,6 +42,8 @@ class EncoderShim : EncoderListener, SwitchListener {
          */
         void invertEncoderDirection();
 
+        void setQuarterCycleEncoder();
+
     private:
         void encoderHasChanged(int newValue) override;
 
@@ -54,6 +56,7 @@ class EncoderShim : EncoderListener, SwitchListener {
         EncoderShimFn encoderClickFn = nullptr;
 
         int encoderValue = 0;// last known encoder value
+        bool reversed = false;
 
 };
 

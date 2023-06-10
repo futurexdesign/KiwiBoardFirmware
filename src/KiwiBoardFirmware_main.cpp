@@ -98,6 +98,11 @@ void setup() {
         // reinit menu system so encoder is configured properly.
         setupMenu();
     }
+//    // If this is not a full cycle encoder, reinit encoder.
+//    if (menuEncoderType.getCurrentValue() == 1)  {
+//        encoderShim->setQuarterCycleEncoder();
+//        setupMenu();
+//    }
 
     // Get saved values for sounder and sound level..
     sounderOps->set_menuSound(menusounder.getBoolean()); 

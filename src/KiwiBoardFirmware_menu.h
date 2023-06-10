@@ -30,15 +30,18 @@ extern GraphicsDeviceRenderer renderer;
 
 // Global Menu Item exports
 extern TextMenuItem menuVersion;
-extern BooleanMenuItem menumotorTest;
 extern AnalogMenuItem menuSoundLevel;
 extern BooleanMenuItem menusounder;
-extern BooleanMenuItem menuStealthChop;
-extern AnalogMenuItem menuIRun;
-extern AnalogMenuItem menuGlobalScaler;
+extern EnumMenuItem menuEncoderType;
 extern BooleanMenuItem menuInvertEncoder;
 extern BackMenuItem menuBackAdvanced;
 extern SubMenuItem menuAdvanced;
+extern BooleanMenuItem menuStealthChop;
+extern AnalogMenuItem menuIRun;
+extern AnalogMenuItem menuGlobalScaler;
+extern BooleanMenuItem menumotorTest;
+extern BackMenuItem menuBackMotorSettings;
+extern SubMenuItem menuMotorSettings;
 extern AnalogMenuItem menuMaxPreheat;
 extern AnalogMenuItem menucooldownTime;
 extern BooleanMenuItem menufanCooldown;

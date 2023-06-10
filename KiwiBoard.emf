@@ -139,7 +139,7 @@
     {
       "parentId": 8,
       "type": "analogItem",
-      "defaultValue": "1",
+      "defaultValue": "6",
       "item": {
         "maxValue": 10,
         "offset": 1,
@@ -238,7 +238,7 @@
     {
       "parentId": 12,
       "type": "analogItem",
-      "defaultValue": "50",
+      "defaultValue": "175",
       "item": {
         "maxValue": 950,
         "offset": 50,
@@ -398,7 +398,98 @@
       "type": "subMenu",
       "item": {
         "secured": false,
-        "name": "Advanced",
+        "name": "Motor Settings",
+        "variableName": "MotorSettings",
+        "id": 52,
+        "eepromAddress": -1,
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 52,
+      "type": "boolItem",
+      "defaultValue": "false",
+      "item": {
+        "naming": "ON_OFF",
+        "name": "Motor Test",
+        "variableName": "motorTest",
+        "id": 44,
+        "eepromAddress": -1,
+        "functionName": "@motortest",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 52,
+      "type": "analogItem",
+      "defaultValue": "148",
+      "item": {
+        "maxValue": 255,
+        "offset": 0,
+        "divisor": 1,
+        "unitName": "",
+        "step": 1,
+        "name": "Global Scaler",
+        "variableName": "GlobalScaler",
+        "id": 32,
+        "eepromAddress": 75,
+        "functionName": "@GlobalScalerChanged",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 52,
+      "type": "analogItem",
+      "defaultValue": "17",
+      "item": {
+        "maxValue": 31,
+        "offset": 0,
+        "divisor": 1,
+        "unitName": "",
+        "step": 1,
+        "name": "IRun",
+        "variableName": "IRun",
+        "id": 33,
+        "eepromAddress": 77,
+        "functionName": "@iRunChanged",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 52,
+      "type": "boolItem",
+      "defaultValue": "true",
+      "item": {
+        "naming": "ON_OFF",
+        "name": "StealthChop",
+        "variableName": "StealthChop",
+        "id": 45,
+        "eepromAddress": 96,
+        "functionName": "@stealthChopChange",
+        "readOnly": false,
+        "localOnly": false,
+        "visible": true,
+        "staticDataInRAM": false
+      }
+    },
+    {
+      "parentId": 7,
+      "type": "subMenu",
+      "item": {
+        "secured": false,
+        "name": "Hardware",
         "variableName": "Advanced",
         "id": 30,
         "eepromAddress": -1,
@@ -426,57 +517,18 @@
     },
     {
       "parentId": 30,
-      "type": "analogItem",
-      "defaultValue": "148",
+      "type": "enumItem",
+      "defaultValue": "0",
       "item": {
-        "maxValue": 255,
-        "offset": 0,
-        "divisor": 1,
-        "unitName": "",
-        "step": 1,
-        "name": "Global Scaler",
-        "variableName": "GlobalScaler",
-        "id": 32,
-        "eepromAddress": 75,
-        "functionName": "@GlobalScalerChanged",
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 30,
-      "type": "analogItem",
-      "defaultValue": "17",
-      "item": {
-        "maxValue": 31,
-        "offset": 0,
-        "divisor": 1,
-        "unitName": "",
-        "step": 1,
-        "name": "IRun",
-        "variableName": "IRun",
-        "id": 33,
-        "eepromAddress": 77,
-        "functionName": "@iRunChanged",
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 30,
-      "type": "boolItem",
-      "defaultValue": "true",
-      "item": {
-        "naming": "ON_OFF",
-        "name": "StealthChop",
-        "variableName": "StealthChop",
-        "id": 45,
-        "eepromAddress": 96,
-        "functionName": "@stealthChopChange",
+        "enumEntries": [
+          "Full Cycle",
+          "Quarter Cycle"
+        ],
+        "name": "Encoder Type",
+        "variableName": "EncoderType",
+        "id": 51,
+        "eepromAddress": 100,
+        "functionName": "@settings_changed",
         "readOnly": false,
         "localOnly": false,
         "visible": true,
@@ -509,7 +561,7 @@
         "offset": 0,
         "divisor": 1,
         "unitName": "%",
-        "step": 1,
+        "step": 10,
         "name": "Volume",
         "variableName": "SoundLevel",
         "id": 50,
@@ -522,24 +574,7 @@
       }
     },
     {
-      "parentId": 30,
-      "type": "boolItem",
-      "defaultValue": "false",
-      "item": {
-        "naming": "ON_OFF",
-        "name": "Motor Test",
-        "variableName": "motorTest",
-        "id": 44,
-        "eepromAddress": -1,
-        "functionName": "@motortest",
-        "readOnly": false,
-        "localOnly": false,
-        "visible": true,
-        "staticDataInRAM": false
-      }
-    },
-    {
-      "parentId": 30,
+      "parentId": 7,
       "type": "textItem",
       "defaultValue": "1.00",
       "item": {
