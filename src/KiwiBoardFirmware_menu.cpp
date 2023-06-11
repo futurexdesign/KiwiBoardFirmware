@@ -62,8 +62,8 @@ BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCA
 SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuMotorSettings, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospinAMAX = { "Accel", 40, 88, 2000, settings_changed, 500, 1, "" };
 AnalogMenuItem menuspinAMAX(&minfospinAMAX, 375, nullptr, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 950, settings_changed, 50, 1, "rpm" };
-AnalogMenuItem menuspin_speed(&minfospin_speed, 175, &menuspinAMAX, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 650, settings_changed, 50, 1, "rpm" };
+AnalogMenuItem menuspin_speed(&minfospin_speed, 350, &menuspinAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospin_duration = { "Time", 13, 12, 119, settings_changed, 1, 1, "sec" };
 AnalogMenuItem menuspin_duration(&minfospin_duration, 44, &menuspin_speed, INFO_LOCATION_PGM);
 const SubMenuInfo minfoSpinSettings = { "Spin", 12, 0xffff, 0, NO_CALLBACK };
@@ -101,8 +101,8 @@ void setupMenu() {
     // Now add any readonly, non-remote and visible flags.
     menuVersion.setReadOnly(true);
     menuspinAMAX.setStep(25);
-    menuspin_speed.setStep(5);
     menuwashAMAX.setStep(25);
+    menuspin_speed.setStep(5);
     menuwash_speed.setStep(5);
     menudry_speed.setStep(5);
     menuSoundLevel.setStep(10);

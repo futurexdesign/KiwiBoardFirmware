@@ -238,9 +238,9 @@
     {
       "parentId": 12,
       "type": "analogItem",
-      "defaultValue": "175",
+      "defaultValue": "350",
       "item": {
-        "maxValue": 950,
+        "maxValue": 650,
         "offset": 50,
         "divisor": 1,
         "unitName": "rpm",
