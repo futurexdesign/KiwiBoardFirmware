@@ -20,27 +20,35 @@ TfteSpiDrawable gfxDrawable(&gfx, 100);
 GraphicsDeviceRenderer renderer(30, applicationInfo.name, &gfxDrawable);
 
 // Global Menu Item declarations
-RENDERING_CALLBACK_NAME_INVOKE(fnVersionRtCall, textItemRenderFn, "Version", -1, NO_CALLBACK)
-TextMenuItem menuVersion(fnVersionRtCall, "1.00", 43, 10, NULL);
-const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
-BooleanMenuItem menumotorTest(&minfomotorTest, false, &menuVersion, INFO_LOCATION_PGM);
+const AnyMenuInfo minfoVersion = { "Version", 43, 0xffff, 0, NO_CALLBACK };
+TextMenuItem menuVersion(&minfoVersion, "1.00", 10, nullptr, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoSoundLevel = { "Volume", 50, 98, 100, soundLevel, 0, 1, "%" };
-AnalogMenuItem menuSoundLevel(&minfoSoundLevel, 0, &menumotorTest, INFO_LOCATION_PGM);
+AnalogMenuItem menuSoundLevel(&minfoSoundLevel, 0, nullptr, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfosounder = { "Sound", 49, 97, 1, soundChanged, NAMING_ON_OFF };
 BooleanMenuItem menusounder(&minfosounder, false, &menuSoundLevel, INFO_LOCATION_PGM);
+const char enumStrEncoderType_0[] = "Full Cycle";
+const char enumStrEncoderType_1[] = "Quarter Cycle";
+const char* const enumStrEncoderType[]  = { enumStrEncoderType_0, enumStrEncoderType_1 };
+const EnumMenuInfo minfoEncoderType = { "Encoder Type", 51, 100, 1, settings_changed, enumStrEncoderType };
+EnumMenuItem menuEncoderType(&minfoEncoderType, 0, &menusounder, INFO_LOCATION_PGM);
+const BooleanMenuInfo minfoInvertEncoder = { "Invert Encoder", 34, 79, 1, NO_CALLBACK, NAMING_YES_NO };
+BooleanMenuItem menuInvertEncoder(&minfoInvertEncoder, false, &menuEncoderType, INFO_LOCATION_PGM);
+const SubMenuInfo minfoAdvanced = { "Hardware", 30, 0xffff, 0, NO_CALLBACK };
+BackMenuItem menuBackAdvanced(&minfoAdvanced, &menuInvertEncoder, INFO_LOCATION_PGM);
+SubMenuItem menuAdvanced(&minfoAdvanced, &menuBackAdvanced, &menuVersion, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfoStealthChop = { "StealthChop", 45, 96, 1, stealthChopChange, NAMING_ON_OFF };
-BooleanMenuItem menuStealthChop(&minfoStealthChop, true, &menusounder, INFO_LOCATION_PGM);
+BooleanMenuItem menuStealthChop(&minfoStealthChop, true, nullptr, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoIRun = { "IRun", 33, 77, 31, iRunChanged, 0, 1, "" };
 AnalogMenuItem menuIRun(&minfoIRun, 17, &menuStealthChop, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoGlobalScaler = { "Global Scaler", 32, 75, 255, GlobalScalerChanged, 0, 1, "" };
 AnalogMenuItem menuGlobalScaler(&minfoGlobalScaler, 148, &menuIRun, INFO_LOCATION_PGM);
-const BooleanMenuInfo minfoInvertEncoder = { "Invert Encoder", 34, 79, 1, NO_CALLBACK, NAMING_YES_NO };
-BooleanMenuItem menuInvertEncoder(&minfoInvertEncoder, false, &menuGlobalScaler, INFO_LOCATION_PGM);
-const SubMenuInfo minfoAdvanced = { "Advanced", 30, 0xffff, 0, NO_CALLBACK };
-BackMenuItem menuBackAdvanced(&minfoAdvanced, &menuInvertEncoder, INFO_LOCATION_PGM);
-SubMenuItem menuAdvanced(&minfoAdvanced, &menuBackAdvanced, NULL, INFO_LOCATION_PGM);
+const BooleanMenuInfo minfomotorTest = { "Motor Test", 44, 0xffff, 1, motortest, NAMING_ON_OFF };
+BooleanMenuItem menumotorTest(&minfomotorTest, false, &menuGlobalScaler, INFO_LOCATION_PGM);
+const SubMenuInfo minfoMotorSettings = { "Motor Settings", 52, 0xffff, 0, NO_CALLBACK };
+BackMenuItem menuBackMotorSettings(&minfoMotorSettings, &menumotorTest, INFO_LOCATION_PGM);
+SubMenuItem menuMotorSettings(&minfoMotorSettings, &menuBackMotorSettings, &menuAdvanced, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoMaxPreheat = { "Preheat", 48, 94, 9, settings_changed, 1, 1, "min" };
-AnalogMenuItem menuMaxPreheat(&minfoMaxPreheat, 4, NULL, INFO_LOCATION_PGM);
+AnalogMenuItem menuMaxPreheat(&minfoMaxPreheat, 4, nullptr, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfocooldownTime = { "Cool Time", 19, 21, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menucooldownTime(&minfocooldownTime, 1, &menuMaxPreheat, INFO_LOCATION_PGM);
 const BooleanMenuInfo minfofanCooldown = { "Cooldown", 18, 20, 1, settings_changed, NAMING_ON_OFF };
@@ -51,22 +59,22 @@ const AnalogMenuInfo minfodry_duration = { "Time", 16, 16, 10, settings_changed,
 AnalogMenuItem menudry_duration(&minfodry_duration, 4, &menudry_speed, INFO_LOCATION_PGM);
 const SubMenuInfo minfoDrySettings = { "Dry", 15, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCATION_PGM);
-SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuAdvanced, INFO_LOCATION_PGM);
+SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuMotorSettings, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospinAMAX = { "Accel", 40, 88, 2000, settings_changed, 500, 1, "" };
-AnalogMenuItem menuspinAMAX(&minfospinAMAX, 375, NULL, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 950, settings_changed, 50, 1, "rpm" };
-AnalogMenuItem menuspin_speed(&minfospin_speed, 50, &menuspinAMAX, INFO_LOCATION_PGM);
+AnalogMenuItem menuspinAMAX(&minfospinAMAX, 375, nullptr, INFO_LOCATION_PGM);
+const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 650, settings_changed, 50, 1, "rpm" };
+AnalogMenuItem menuspin_speed(&minfospin_speed, 350, &menuspinAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospin_duration = { "Time", 13, 12, 119, settings_changed, 1, 1, "sec" };
 AnalogMenuItem menuspin_duration(&minfospin_duration, 44, &menuspin_speed, INFO_LOCATION_PGM);
 const SubMenuInfo minfoSpinSettings = { "Spin", 12, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackSpinSettings(&minfoSpinSettings, &menuspin_duration, INFO_LOCATION_PGM);
 SubMenuItem menuSpinSettings(&minfoSpinSettings, &menuBackSpinSettings, &menuDrySettings, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfowashAMAX = { "Accel", 41, 90, 2000, settings_changed, 500, 1, "" };
-AnalogMenuItem menuwashAMAX(&minfowashAMAX, 400, NULL, INFO_LOCATION_PGM);
+AnalogMenuItem menuwashAMAX(&minfowashAMAX, 400, nullptr, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfowash_speed = { "Speed", 11, 10, 350, settings_changed, 50, 1, "rpm" };
 AnalogMenuItem menuwash_speed(&minfowash_speed, 175, &menuwashAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoRotations = { "Rotations", 39, 86, 10, settings_changed, 1, 1, "" };
-AnalogMenuItem menuRotations(&minfoRotations, 1, &menuwash_speed, INFO_LOCATION_PGM);
+AnalogMenuItem menuRotations(&minfoRotations, 6, &menuwash_speed, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfowash_duration = { "Time", 9, 4, 9, settings_changed, 1, 1, "min" };
 AnalogMenuItem menuwash_duration(&minfowash_duration, 4, &menuRotations, INFO_LOCATION_PGM);
 const SubMenuInfo minfowashSettings = { "Wash", 8, 0xffff, 0, NO_CALLBACK };
@@ -76,15 +84,15 @@ const AnalogMenuInfo minfoBacklight = { "Backlight", 36, 84, 7, backlightChange,
 AnalogMenuItem menuBacklight(&minfoBacklight, 3, &menuwashSettings, INFO_LOCATION_PGM);
 const SubMenuInfo minfoSettings = { "Settings", 7, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackSettings(&minfoSettings, &menuBacklight, INFO_LOCATION_PGM);
-SubMenuItem menuSettings(&minfoSettings, &menuBackSettings, NULL, INFO_LOCATION_PGM);
+SubMenuItem menuSettings(&minfoSettings, &menuBackSettings, nullptr, INFO_LOCATION_PGM);
 const AnyMenuInfo minfoDry = { "Dry", 38, 0xffff, 0, dry };
 ActionMenuItem menuDry(&minfoDry, &menuSettings, INFO_LOCATION_PGM);
 const AnyMenuInfo minfoSpin = { "Spin", 37, 0xffff, 0, spin };
 ActionMenuItem menuSpin(&minfoSpin, &menuDry, INFO_LOCATION_PGM);
 AnyMenuInfo minfoWash = { "Wash", 2, 0xffff, 0, wash };
 ActionMenuItem menuWash(&minfoWash, &menuSpin, INFO_LOCATION_RAM);
-RENDERING_CALLBACK_NAME_INVOKE(fnRunTimeRtCall, timeItemRenderFn, "RunTime", -1, NO_CALLBACK)
-TimeFormattedMenuItem menuRunTime(fnRunTimeRtCall, TimeStorage(0, 0, 0, 0), 6, (MultiEditWireType)6, &menuWash);
+const AnyMenuInfo minfoRunTime = { "RunTime", 6, 0xffff, 0, NO_CALLBACK };
+TimeFormattedMenuItem menuRunTime(&minfoRunTime, TimeStorage(0, 0, 0, 0), (MultiEditWireType)6, &menuWash, INFO_LOCATION_PGM);
 
 void setupMenu() {
     // First we set up eeprom and authentication (if needed).
@@ -93,10 +101,11 @@ void setupMenu() {
     // Now add any readonly, non-remote and visible flags.
     menuVersion.setReadOnly(true);
     menuspinAMAX.setStep(25);
-    menuspin_speed.setStep(5);
     menuwashAMAX.setStep(25);
+    menuspin_speed.setStep(5);
     menuwash_speed.setStep(5);
     menudry_speed.setStep(5);
+    menuSoundLevel.setStep(10);
 
     // Code generated by plugins.
     gfx.begin();

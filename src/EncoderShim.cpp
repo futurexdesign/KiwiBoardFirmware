@@ -70,6 +70,21 @@ void EncoderShim::registerClickCallback(EncoderShimFn callback) {
  * Reinitialize the encoder with a and b pins reversed.
  */
 void EncoderShim::invertEncoderDirection() {
+    reversed = true;
     setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, FULL_CYCLE);
+}
+
+/**
+ * Set up as a quarter cycle encoder, be careful to not undo any encoder reversing that may of happened
+ */
+void EncoderShim::setQuarterCycleEncoder() {
+    if (reversed) {
+        setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, QUARTER_CYCLE);
+
+    } else {
+        setupRotaryEncoderWithInterrupt(ENC1, ENC2, this, HWACCEL_NONE, QUARTER_CYCLE);
+    }
+
+
 }
 

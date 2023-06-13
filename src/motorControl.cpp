@@ -187,6 +187,8 @@ void MotorControl::exec() {
         if (motor->getCurrentSpeed() == 0) {
             state.isRunning = false;
             state.isStopping = false;
+            motor->setCurrentPosition(0, true); // Reset position
+            motor->setTargetPosition(0); // Reset position
 
             platform->enableMotor(false);
 
@@ -194,8 +196,8 @@ void MotorControl::exec() {
                 stoppedCallback(state.program);
             }
         } else {
-            // Give it 10 10 ticks to finish before stopping it manually
-            if (!state.isTesting && state.stopping_cnt == 10) {
+            // Give it 50 ticks to finish before stopping it manually
+            if (!state.isTesting && state.stopping_cnt == 50) {
                 motor->setCurrentPosition(0, true); // Reset position
                 motor->setTargetPosition(0); // Reset position
 
