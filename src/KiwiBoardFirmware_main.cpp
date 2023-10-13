@@ -129,6 +129,8 @@ void stoppedCallback(int pgm) {
     sounderOps->beep_activate(0, false); // 0 = End of cycle tone
     resetIcons();
     observer->resetConstraint();
+    // After end of spin (or other cycle) switch back to wash to avoid accidents 
+    menuMgr.activateMenuItem(&menuWash);
 }
 
 /**
