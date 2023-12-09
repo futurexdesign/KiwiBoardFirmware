@@ -1,7 +1,7 @@
 {
   "version": "1.00",
   "projectName": "KiwiBoard",
-  "author": "2p3ca",
+  "author": "kevin",
   "items": [
     {
       "parentId": 0,
@@ -297,7 +297,7 @@
       "type": "analogItem",
       "defaultValue": "4",
       "item": {
-        "maxValue": 10,
+        "maxValue": 25,
         "offset": 1,
         "divisor": 1,
         "unitName": "min",
