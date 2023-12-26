@@ -55,7 +55,7 @@ const BooleanMenuInfo minfofanCooldown = { "Cooldown", 18, 20, 1, settings_chang
 BooleanMenuItem menufanCooldown(&minfofanCooldown, true, &menucooldownTime, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfodry_speed = { "Speed", 17, 18, 100, settings_changed, 50, 1, "rpm" };
 AnalogMenuItem menudry_speed(&minfodry_speed, 20, &menufanCooldown, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfodry_duration = { "Time", 16, 16, 25, settings_changed, 1, 1, "min" };
+const AnalogMenuInfo minfodry_duration = { "Time", 16, 16, 29, settings_changed, 1, 1, "min" };
 AnalogMenuItem menudry_duration(&minfodry_duration, 4, &menudry_speed, INFO_LOCATION_PGM);
 const SubMenuInfo minfoDrySettings = { "Dry", 15, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCATION_PGM);
@@ -75,7 +75,7 @@ const AnalogMenuInfo minfowash_speed = { "Speed", 11, 10, 350, settings_changed,
 AnalogMenuItem menuwash_speed(&minfowash_speed, 175, &menuwashAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoRotations = { "Rotations", 39, 86, 10, settings_changed, 1, 1, "" };
 AnalogMenuItem menuRotations(&minfoRotations, 6, &menuwash_speed, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfowash_duration = { "Time", 9, 4, 9, settings_changed, 1, 1, "min" };
+const AnalogMenuInfo minfowash_duration = { "Time", 9, 4, 29, settings_changed, 1, 1, "min" };
 AnalogMenuItem menuwash_duration(&minfowash_duration, 4, &menuRotations, INFO_LOCATION_PGM);
 const SubMenuInfo minfowashSettings = { "Wash", 8, 0xffff, 0, NO_CALLBACK };
 BackMenuItem menuBackwashSettings(&minfowashSettings, &menuwash_duration, INFO_LOCATION_PGM);
