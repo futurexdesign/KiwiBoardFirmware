@@ -1,7 +1,7 @@
 {
   "version": "1.00",
   "projectName": "KiwiBoard",
-  "author": "2p3ca",
+  "author": "kevin",
   "items": [
     {
       "parentId": 0,
@@ -139,7 +139,7 @@
     {
       "parentId": 8,
       "type": "analogItem",
-      "defaultValue": "6",
+      "defaultValue": "5",
       "item": {
         "maxValue": 10,
         "offset": 1,
@@ -160,7 +160,7 @@
     {
       "parentId": 8,
       "type": "analogItem",
-      "defaultValue": "175",
+      "defaultValue": "250",
       "item": {
         "maxValue": 350,
         "offset": 50,
@@ -181,7 +181,7 @@
     {
       "parentId": 8,
       "type": "analogItem",
-      "defaultValue": "400",
+      "defaultValue": "200",
       "item": {
         "maxValue": 2000,
         "offset": 500,
@@ -238,7 +238,7 @@
     {
       "parentId": 12,
       "type": "analogItem",
-      "defaultValue": "350",
+      "defaultValue": "450",
       "item": {
         "maxValue": 650,
         "offset": 50,
@@ -259,7 +259,7 @@
     {
       "parentId": 12,
       "type": "analogItem",
-      "defaultValue": "375",
+      "defaultValue": "0",
       "item": {
         "maxValue": 2000,
         "offset": 500,
