@@ -1,6 +1,9 @@
 # KiwiBoardFirmware
 Firmware for KiwiBoard upgrade to KiwiClean watch cleaning machine. 
 
+![screenshot_21984](https://user-images.githubusercontent.com/8275093/234726693-8163635c-4dfb-4c79-9a8b-26653372aa87.png)
+
+
 ## Install
 To install the firmware, you can download a release from the github page.  It contains a .uf2 file with the firmware. 
 
