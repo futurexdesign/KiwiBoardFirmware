@@ -4,65 +4,24 @@
 
 #include "motorControl.h"
 #include "picoPlatform.h"
+#include "KiwiBoardFirmware_menu.h"
+#include "kiwiDebugLog.h"
 
 void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
-    this->platform = curPlatform; // Set the current platform.
+    this->platform = curPlatform;
 
-    // start motor controller. wants to be enabled to talk to it..
-    platform->enableMotor(true);
-
-    TMC5160::PowerStageParameters powerStageParams; // defaults.
-    TMC5160::MotorParameters motorParams;
-
-    motorParams.globalScaler = globalScaler; // Use Excel file to find correct scaler so that ihold=31 is max desired current
-    motorParams.irun = iRun;                 // 31 is max running current, adjust accordingly.
-    motorParams.ihold = 0;                   // holding current, 0 enables freewheel
-
-    // Library initializes with StealthChop enabled.
-    motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
-    motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
-
-    // Disable the transition to SpreadCycle, we don't need accuracy, prefer StealthChop
-    if (stealthChop) {
-        // disable transition to SpreadCycle
-        motor->writeRegister(TMC5160_Reg::TPWMTHRS, 0);
-    } else {
-        // turn off stealth chop in the gconf register
-
-        TMC5160_Reg::GCONF_Register gconf = { 0 };
-        gconf.en_pwm_mode = false;
-        gconf.shaft = TMC5160::NORMAL_MOTOR_DIRECTION;
-        motor->writeRegister(TMC5160_Reg::GCONF, gconf.value);
+    if (motor == nullptr) {
+        motor = createMotorDriver();
     }
 
-    motor->stop(); // Ensure the controller is initialized with the motor stopped
+    // Configure the active driver using menu values.
+    MOTOR_DRIVER_CONFIG config;
+    config.globalScaler = globalScaler;
+    config.iRun = iRun;
+    config.stealthChop = stealthChop;
 
-    // Check if the TMC5160 answers back
-    TMC5160_Reg::IOIN_Register ioin = {0};
-
-    // while (ioin.version != motor->IC_VERSION)
-    // {
-    //     ioin.value = motor->readRegister(TMC5160_Reg::IO_INPUT_OUTPUT);
-
-    //     if (ioin.value == 0 || ioin.value == 0xFFFFFFFF)
-    //     {
-    //         Serial.println("No TMC5160 found.");
-    //         delay(2000);
-    //     }
-    //     else
-    //     {
-    //         Serial.println("Found a TMC device.");
-    //         Serial.print("IC version: 0x");
-    //         Serial.print(ioin.version, HEX);
-    //         Serial.print(" (");
-    //         if (ioin.version == motor->IC_VERSION)
-    //             Serial.println("TMC5160).");
-    //         else
-    //             Serial.println("unknown IC !)");
-    //     }
-    // }
-
-    platform->enableMotor(false);
+    motor->init(platform, config);
+    last_exec_ms = millis();
 }
 
 /**
@@ -80,8 +39,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
     state.program = programId;
     state.run_start = millis();
     state.isStopping = false;
-    Serial.print("Program: ");
-    Serial.println(state.program);
+    LOG_INFO("Program:", state.program);
 
     if (programId == 0) {
         // wash cycle..
@@ -95,22 +53,17 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         motor->setCurrentPosition(0, true);
 
         // ramp definition
-        motor->setRampMode(TMC5160::POSITIONING_MODE);
+        motor->setRampMode(RAMP_POSITIONING);
 
         // Set speed in full steps per second.
         motor->setMaxSpeed(rpmToVmax(currentSettings.wash_speed));
         state.rpm = currentSettings.wash_speed;
 
-        // Register for VMAX is expressed in uSteps / t
-        // t is 1.398101 at 12mhz
-
-        // Given
         motor->setAcceleration(currentSettings.wash_amax);
 
         // Rotate the configured number of full steps
         // 200 full steps per rotation
         state.washSteps = currentSettings.washRotations * 200;
-        // target position is set using FULL-STEPS (motor library multiplies by uSteps internally)..
         motor->setTargetPosition(state.washSteps);
 
         state.direction = false;
@@ -126,7 +79,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         motor->setTargetPosition(0);
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
-        motor->setRampMode(TMC5160::VELOCITY_MODE);
+        motor->setRampMode(RAMP_VELOCITY);
 
         motor->setAcceleration(currentSettings.spin_amax);
 
@@ -145,7 +98,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
         // Set low accel, high rpm, check back to see if reached speed - yes? then decellerate to zero
-        motor->setRampMode(TMC5160::VELOCITY_MODE);
+        motor->setRampMode(RAMP_VELOCITY);
         motor->setAcceleration(100); // 300 microsteps per unit of time
         motor->setMaxSpeed(rpmToVmax(400)); // RPM 600
 
@@ -165,7 +118,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         platform->enableHeater(true);
 
         // Set motor control to velocity mode, setup accelerations, max desired speed
-        motor->setRampMode(TMC5160::VELOCITY_MODE);
+        motor->setRampMode(RAMP_VELOCITY);
         motor->setAcceleration(300);
         motor->setMaxSpeed(rpmToVmax(currentSettings.dry_speed));
         state.rpm = currentSettings.dry_speed;
@@ -175,6 +128,12 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
 }
 
 void MotorControl::exec() {
+    const unsigned long now = millis();
+    const unsigned long dtMs = now - last_exec_ms;
+    last_exec_ms = now;
+
+    motor->tick(dtMs);
+
     // This is our tick for motor control, Check to see if we are running, need to change directions, or stop
 
     if (!state.isRunning) {
@@ -225,23 +184,20 @@ void MotorControl::exec() {
         stopMotion();
 
     } else if (state.program == 0) {
-        Serial.println("Check motion");
-        Serial.print("Target Pos: ");
-        Serial.println(motor->getTargetPosition());
-        Serial.print("Current Position: ");
-        Serial.println(motor->getCurrentPosition());
+        LOG_DEBUG("Check motion");
+        LOG_DEBUG("Target Pos:", motor->getTargetPosition());
+        LOG_DEBUG("Current Position:", motor->getCurrentPosition());
 
         // check if we need to change directions yet
-        if (motor->getTargetPosition() == motor->getCurrentPosition()) {
-            Serial.println("Reverse");
+        if (motor->isTargetPositionReached()) {
+            LOG_INFO("Reverse");
             // reverse directions
             state.direction = !state.direction;
             motor->setTargetPosition(state.direction ? 0 : state.washSteps);
         }
     } else if (state.isTesting) {
-            Serial.println("Motor testing......");
-            Serial.print("Current Speed: ");
-            Serial.println(motor->getCurrentSpeed());
+            LOG_DEBUG("Motor testing......");
+            LOG_DEBUG("Current Speed:", motor->getCurrentSpeed());
             // If reached target velocity...
             if(motor->isTargetVelocityReached() && motor->getCurrentSpeed() > 0) {
                 motor->setMaxSpeed(rpmToVmax(0));
@@ -297,7 +253,7 @@ unsigned long MotorControl::getSecondsRemaining() {
 /**
  * Return the current DriverStatus from the underlying motor control
  */
-TMC5160::DriverStatus MotorControl::getDriverStatus() {
+DriverStatus MotorControl::getDriverStatus() {
     return motor->getDriverStatus();
 }
 
@@ -307,12 +263,7 @@ void MotorControl::setStoppedCallback(MotorCallbackFn stopFn) {
 }
 
 /**
-* Convert the provided RPM to a VMAX value that the library understands, which is rot/sec * 200
-*
-*
-* Process:
-* - Convert RPM to Rot/Sec (/60)
-* - vmax =  deg/sec *200
+* Convert the provided RPM to full steps per second.
 *
 * @param rpm
 * @return
@@ -323,6 +274,30 @@ float MotorControl::rpmToVmax(float rpm) {
     float vmax = (rpm / 60.0f) * 200;
 
     return vmax;
+}
+
+void MotorControl::setStealthChop(bool enabled) {
+    if (motor != nullptr) {
+        motor->setStealthChop(enabled);
+    }
+}
+
+bool MotorControl::isStealthChopEnabled() {
+    if (motor == nullptr) {
+        return false;
+    }
+    return motor->isStealthChopEnabled();
+}
+
+void MotorControl::printDriveStatus() {
+    if (motor == nullptr) {
+        Serial.println(F("Motor control not initialized"));
+        return;
+    }
+
+    Serial.print(F("motor enabled: "));
+    Serial.println(platform->isMotorEnabled() ? F("true") : F("false"));
+    motor->printDriveStatus();
 }
 
 

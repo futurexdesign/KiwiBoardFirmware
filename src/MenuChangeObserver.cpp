@@ -4,11 +4,12 @@
 //
 
 #include "MenuChangeObserver.h"
+#include "kiwiDebugLog.h"
 
 
 void MenuChangeObserver::activeItemHasChanged(MenuItem *newActive) {
 
-    Serial.println("Active menu item changed.. ");
+    LOG_DEBUG("Active menu item changed.. ");
 
     if (LOCK_TO_BUTTON) {
         if (newActive != stopIcon) {
@@ -19,7 +20,7 @@ void MenuChangeObserver::activeItemHasChanged(MenuItem *newActive) {
     // todo.. block out the title bar... This likely wont be needed, as tcMenu 3.2 will fix the encoder issue
     // that makes it possible to even get to the title bar on the homescreen.
     if (newActive == timerRow || newActive->getId() == 0) {
-        Serial.println("Tried to move to TimerRow... Move back to LeftConstraint ");
+        LOG_DEBUG("Tried to move to TimerRow... Move back to LeftConstraint ");
         menuManager->activateMenuItem(leftConstraint);
     }
 }
@@ -33,18 +34,18 @@ MenuChangeObserver::MenuChangeObserver(MenuManager *menuManager, MenuItem *timer
 
 
 void MenuChangeObserver::structureHasChanged() {
-Serial.println("menu tree structure changed");
+    LOG_DEBUG("menu tree structure changed");
 }
 
 bool MenuChangeObserver::menuEditStarting(MenuItem* item)  {
-Serial.println("Editing started");
+    LOG_DEBUG("Editing started");
 
 
 return true; // allow editing to start
 }
 
 void MenuChangeObserver::menuEditEnded(MenuItem* item)  {
-Serial.println("Edit committed");
+    LOG_DEBUG("Edit committed");
 }
 
 void MenuChangeObserver::constrainToStopButton(MenuItem *stopButton) {

@@ -4,6 +4,7 @@
 //
 
 #include "EncoderShim.h"
+#include "kiwiDebugLog.h"
 
 EncoderShim::EncoderShim() {
 
@@ -18,8 +19,8 @@ void EncoderShim::initForEncoder() {
 }
 
 void EncoderShim::encoderHasChanged(int newValue) {
-    Serial.println("Encoder Turned");
-    Serial.println(newValue);
+    LOG_DEBUG("Encoder Turned");
+    LOG_DEBUG("Encoder value:", newValue);
 
     // Which way did the encoder go...
     bool direction;
@@ -32,23 +33,23 @@ void EncoderShim::encoderHasChanged(int newValue) {
     encoderValue = newValue;
 
     menuMgr.valueChanged(newValue);
-    Serial.println("Check for encoderChangeFn");
+    LOG_TRACE("Check for encoderChangeFn");
     if (encoderChangeFn != nullptr) {
-        Serial.println("call encoderChangefn Callback");
+        LOG_TRACE("call encoderChangefn Callback");
         encoderChangeFn(direction, false);
     }
 
 }
 
 void EncoderShim::onPressed(pinid_t pin, bool held) {
-    Serial.println("button down");
+    LOG_TRACE("button down");
     if (encoderClickFn != nullptr) {
         encoderClickFn(false, held);
     }
 }
 
 void EncoderShim::onReleased(pinid_t pin, bool held) {
-    Serial.println("button up");
+    LOG_TRACE("button up");
     // always send false, since we don't want the normal tcMenu long press reset  behavior, and we are acting
     // on Pressed long press, not release.
     menuMgr.onMenuSelect(false);
@@ -78,6 +79,20 @@ void EncoderShim::invertEncoderDirection() {
  * Set up as a quarter cycle encoder, be careful to not undo any encoder reversing that may of happened
  */
 void EncoderShim::setQuarterCycleEncoder() {
+    if (reversed) {
+        setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, QUARTER_CYCLE);
+
+    } else {
+        setupRotaryEncoderWithInterrupt(ENC1, ENC2, this, HWACCEL_NONE, QUARTER_CYCLE);
+    }
+
+
+}
+
+/**
+ * Set up as a half cycle encoder, be careful to not undo any encoder reversing that may of happened
+ */
+void EncoderShim::setHalfCycleEncoder() {
     if (reversed) {
         setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, QUARTER_CYCLE);
 

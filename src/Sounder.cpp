@@ -6,6 +6,7 @@
 #include "Sounder.h"
 #include "picoPlatform.h"
 #include "KiwiBoardFirmware_menu.h"
+#include "kiwiDebugLog.h"
 
 BeepHandler::tone beepobj[2];
 
@@ -18,7 +19,7 @@ void BeepHandler::beep_activate(int tone, bool o_ride) {
         // Stop level menu clicks retriggering sounder before existing beep ended
         if(!beepobj[beep].sounderactive) { 
             beepobj[beep].beep_activate = true;
-            Serial.println("Beep activated");
+            LOG_DEBUG("Beep activated");
         }
     }
 
@@ -76,7 +77,7 @@ void BeepHandler::status_update(int tone) {
 
             priv_platform->enableSounder(false);
             beepobj[tone].start_millis = time_us_64() / 1000;
-            Serial.println("SOUNDER OFF");
+            LOG_DEBUG("SOUNDER OFF");
 
             // get next tone
             beepobj[tone].curr_tone++;
@@ -133,7 +134,7 @@ BeepHandler::BeepHandler(PicoPlatform *platform) {
     beepobj[0].tones[5] = {0}; // END
     beepobj[0].curr_tone = 0;
     beepobj[0].start_millis = 0;
-    Serial.println("Initialized Sounder tone 0");
+    LOG_DEBUG("Initialized Sounder tone 0");
     beepobj[0].beep_activate = false;
     beepobj[0].sounderactive = false;
 
@@ -151,7 +152,7 @@ BeepHandler::BeepHandler(PicoPlatform *platform) {
     beepobj[1].tones[5] = {0}; //
     beepobj[1].curr_tone = 0;
     beepobj[1].start_millis = 0;
-    Serial.println("Initialized Sounder tone 1");
+    LOG_DEBUG("Initialized Sounder tone 1");
     beepobj[1].beep_activate = false;
     beepobj[1].sounderactive = false;
 
@@ -165,9 +166,7 @@ void BeepHandler::set_sndLevel(int lev) {
     sndLevel = (0.3 * lev); 
     sndLevel = 100 - sndLevel;
     priv_platform->set_audioLevel(sndLevel);
-    Serial.print("Lev set to: ");
-    Serial.println(lev);
-    Serial.print("Soundlevel set to: ");
-    Serial.println(sndLevel);
+    LOG_DEBUG("Lev set to:", lev);
+    LOG_DEBUG("Soundlevel set to:", sndLevel);
 
 }

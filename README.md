@@ -36,3 +36,32 @@ See `TMC_calculations.xlsx` spreadsheet for information on current calculations.
 sure the full range of iRun represents all available current settings, and we can't accidentally try and send too much current
 to the stepper motor when adjusting iRun. 
 
+## Motor driver build targets
+
+PlatformIO supports compile-time selection between TMC5160 (default) and TMC2209:
+
+- `pio run -e pico-tmc5160` — SPI motion controller with hardware SixPoint ramp generator
+- `pio run -e pico-tmc2209` — UART driver with internal VACTUAL pulse generator and software motion planner
+
+The default `pico` environment aliases `pico-tmc5160`.
+
+### TMC2209 UART wiring (expansion header)
+
+For `pico-tmc2209` builds, hardware UART0 is mapped to the expansion header:
+
+| Expansion | GPIO | UART |
+|-----------|------|------|
+| EXPANSION1 | GPIO0 | TX |
+| EXPANSION2 | GPIO1 | RX |
+
+Connect to the driver `PDN_UART` pin (single-wire):
+
+```
+GPIO0 (TX) ---[1k]---+--- PDN_UART (TMC2209)
+GPIO1 (RX) ----------+
+```
+
+Sounder and screen-capture uses of the expansion pins are disabled in TMC2209 builds so these pins are free for UART.
+
+For a future release, runtime auto-detection of the installed chip (single UF2 for both hardware revisions) is recommended but deferred until TMC2209 hardware validation is complete. See [`plans/tmc2209-runtime-detection-recommendation.md`](plans/tmc2209-runtime-detection-recommendation.md).
+

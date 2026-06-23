@@ -34,11 +34,12 @@ void showSplash() {
  * Once the png is decompressed, this callback is triggered.  Actually display the PNG to the screen.
  * @param pDraw
  */
-void pngDraw(PNGDRAW *pDraw)
+int pngDraw(PNGDRAW *pDraw)
 {
     uint16_t lineBuffer[MAX_IMAGE_WIDTH];
     static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
 
     png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
     gfx.pushImageDMA(0, 0 + pDraw->y, pDraw->iWidth, 1, lineBuffer, dmaBuffer);
+    return 1;
 }

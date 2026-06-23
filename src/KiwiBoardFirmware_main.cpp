@@ -8,6 +8,7 @@
 #include <BaseDialog.h>
 #include "splashScreen.h"
 #include "KiwiBoardFirmware_main.h"
+#include "kiwiDebugLog.h"
 #include "EncoderShim.h"
 #include "heat.h"
 #include "Sounder.h"
@@ -18,9 +19,10 @@
 
 #include "icons.h"
 #include "MenuChangeObserver.h"
+#include "serialCli.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "1.2.3";
+const char VERSION_NUM[] PROGMEM = "2.0.0-TMC";
 
 
 PicoPlatform *platform;
@@ -52,6 +54,7 @@ MenuItem *stoppedButton;
 void setup() {
 
     Serial.begin(115200);
+    debugLogInit();
     Serial.println("Booted");
 
     platform = new PicoPlatform();
@@ -64,7 +67,7 @@ void setup() {
 
     showSplash();
 
-    delay(2000);
+    delay(5000);
     gfx.fillScreen(TFT_BLACK);
 
     // Setup Sounder
@@ -75,6 +78,7 @@ void setup() {
     encoderShim->initForEncoder();
     encoderShim->registerChangeCallback(handleEncoderMove);
     encoderShim->registerClickCallback(checkLongPress);
+    // encoderShim->setHalfCycleEncoder();
 
     menuRunTime.setReadOnly(true);
     setupMenu();
@@ -87,6 +91,7 @@ void setup() {
                                        menuStealthChop.getBoolean());
 
     motorControl->setStoppedCallback(stoppedCallback);
+    serialCliInit(motorControl);
 
     // restore backlight setting
     PicoPlatform::setBacklight(menuBacklight.getIntValueIncludingOffset());
@@ -122,6 +127,8 @@ void setup() {
  * Main loop, we are delegating to the Task library to trigger all of our main processing, so pump the event bus
  */
 void loop() {
+    serialCliTick();
+
     if (!HALT) {
         taskManager.runLoop();
     }
@@ -146,8 +153,8 @@ void stoppedCallback(int pgm) {
 void ui_tick() {
 
     // Check for motor status, if overheated or shorted, alert user
-    TMC5160::DriverStatus curStatus = motorControl->getDriverStatus();
-    if (!DIALOG && curStatus != TMC5160::DriverStatus::OK) {
+    DriverStatus curStatus = motorControl->getDriverStatus();
+    if (!DIALOG && curStatus != DRIVER_OK) {
 
         // launch error dialog
         motorErrorDialog(curStatus);
@@ -205,7 +212,7 @@ void ui_tick() {
 /**
  * An error has been found.  Present a dialog to the user so they know what happened.
  */
-void motorErrorDialog(TMC5160::DriverStatus status) {
+void motorErrorDialog(DriverStatus status) {
     DIALOG = true; // showing an error dialog, set so we dont keep trying to render the dialog over and over
     Serial.println("Stepper drive error detected, reports not ok");
     Serial.print("Current drive status: ");
@@ -220,23 +227,23 @@ void motorErrorDialog(TMC5160::DriverStatus status) {
     const char error[] PROGMEM = "Stepper Drive Error";
     char msg[50]; // 200 character string
     switch (status) {
-        case TMC5160::OT:
-        case TMC5160::OTPW:
+        case DRIVER_OT:
+        case DRIVER_OTPW:
             strcpy(msg, "Driver is overheating");
             break;
-        case TMC5160::S2VSA:
+        case DRIVER_S2VSA:
             strcpy(msg, "A Phase short to 12v");
             break;
-        case TMC5160::S2VSB:
+        case DRIVER_S2VSB:
             strcpy(msg, "B Phase short to 12v");
             break;
-        case TMC5160::S2GA:
+        case DRIVER_S2GA:
             strcpy(msg, "A Phase short to gnd");
             break;
-        case TMC5160::S2GB:
+        case DRIVER_S2GB:
             strcpy(msg, "B Phase short to gnd");
             break;
-        case TMC5160::CP_UV:
+        case DRIVER_CP_UV:
             strcpy(msg, "CP Under-volt");
             break;
         default:
@@ -309,7 +316,7 @@ void CALLBACK_FUNCTION settings_changed(int id) {
  * @param id
  */
 void CALLBACK_FUNCTION GlobalScalerChanged(int id) {
-    Serial.println("GlobalScaler changed... e-stop motor control, and reinit ");
+    LOG_INFO("GlobalScaler changed... e-stop motor control, and reinit ");
 
     // Shut off the TMC
     platform->enableMotor(false);
@@ -329,7 +336,7 @@ void CALLBACK_FUNCTION GlobalScalerChanged(int id) {
  * @param id
  */
 void CALLBACK_FUNCTION iRunChanged(int id) {
-    Serial.println("iRun changed... e-stop motor control, and reinit ");
+    LOG_INFO("iRun changed... e-stop motor control, and reinit ");
 
     // Shut off the TMC
     platform->enableMotor(false);
@@ -375,7 +382,7 @@ void CALLBACK_FUNCTION stealthChopChange(int id) {
  * @param id
  */
 void CALLBACK_FUNCTION soundChanged(int id) {
-    Serial.println("Sound changed...  ");
+    LOG_INFO("Sound changed...  ");
 
     sounderOps->set_menuSound(menusounder.getBoolean());
 
@@ -387,12 +394,12 @@ void CALLBACK_FUNCTION soundChanged(int id) {
  * calls.
  */
 void commit_if_needed() {
-    Serial.println("checking if settings changed.");
+    LOG_DEBUG("checking if settings changed.");
     if (settingsChanged) {
         menuMgr.save(0xfadf);
         EEPROM.commit();
         settingsChanged = false;
-        Serial.println("changes committed");
+        LOG_INFO("changes committed");
     }
 }
 
@@ -410,11 +417,14 @@ void scheduleTasks() {
     // Setup tasks
     // Platform task is relatively low priority
     // Schedule the platform task every 200ms
-    taskManager.scheduleFixedRate(200, platform, TIME_MILLIS);
+    taskManager.scheduleFixedRate(1000, platform, TIME_MILLIS);
 
     // Motor task is the highest priority.
-    // Schedule the motor task for every 50ms
+#if defined(MOTOR_DRIVER_TMC2209)
+    taskManager.scheduleFixedRate(20, motorControl, TIME_MILLIS);
+#else
     taskManager.scheduleFixedRate(150, motorControl, TIME_MILLIS);
+#endif
 
     // UI update task is medium priority.  We are updating the countdown on the display.
     // Every half a second should be plenty for a smooth looking countdown
@@ -606,11 +616,13 @@ void resetIcons() {
 void screenCaptureTask() {
 
 #ifdef SCREENCAP
+#if !defined(MOTOR_DRIVER_TMC2209)
     // If EXPANSION1 is high, trigger the screen capture routine.
     if (digitalRead(EXPANSION1) == HIGH)
     {
         screenServer();
     }
+#endif
 #endif
 }
 

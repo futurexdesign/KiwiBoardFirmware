@@ -4,7 +4,7 @@
  * Callback tasks for the main process (ui related)
 */
 
-#include <TMC5160.h>
+#include "motorDriver.h"
 #include "EncoderShim.h"
 
 #ifndef KIWIBOARDFIRMWARE_KIWIBOARDFIRMWARE_MAIN_H
@@ -19,7 +19,7 @@ const color_t darkModeActionPalette[] = {RGB(255, 255, 255), RGB(0,0,0), RGB(20,
  * This is NOT for raw drawing on the TFT, We'll need to do that separately with a drawing delegate
  */
 void ui_tick();
-void motorErrorDialog(TMC5160::DriverStatus);
+void motorErrorDialog(DriverStatus status);
 void titleBarClick(int id);
 void stoppedCallback(int pgm);
 

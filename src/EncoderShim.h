@@ -44,6 +44,8 @@ class EncoderShim : EncoderListener, SwitchListener {
 
         void setQuarterCycleEncoder();
 
+        void setHalfCycleEncoder();
+
     private:
         void encoderHasChanged(int newValue) override;
 

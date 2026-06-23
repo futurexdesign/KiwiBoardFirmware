@@ -62,7 +62,7 @@ BackMenuItem menuBackDrySettings(&minfoDrySettings, &menudry_duration, INFO_LOCA
 SubMenuItem menuDrySettings(&minfoDrySettings, &menuBackDrySettings, &menuMotorSettings, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospinAMAX = { "Accel", 40, 88, 2000, settings_changed, 500, 1, "" };
 AnalogMenuItem menuspinAMAX(&minfospinAMAX, 0, nullptr, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 650, settings_changed, 50, 1, "rpm" };
+const AnalogMenuInfo minfospin_speed = { "Speed", 14, 14, 950, settings_changed, 50, 1, "rpm" };
 AnalogMenuItem menuspin_speed(&minfospin_speed, 450, &menuspinAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfospin_duration = { "Time", 13, 12, 119, settings_changed, 1, 1, "sec" };
 AnalogMenuItem menuspin_duration(&minfospin_duration, 44, &menuspin_speed, INFO_LOCATION_PGM);
@@ -71,7 +71,7 @@ BackMenuItem menuBackSpinSettings(&minfoSpinSettings, &menuspin_duration, INFO_L
 SubMenuItem menuSpinSettings(&minfoSpinSettings, &menuBackSpinSettings, &menuDrySettings, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfowashAMAX = { "Accel", 41, 90, 2000, settings_changed, 500, 1, "" };
 AnalogMenuItem menuwashAMAX(&minfowashAMAX, 200, nullptr, INFO_LOCATION_PGM);
-const AnalogMenuInfo minfowash_speed = { "Speed", 11, 10, 350, settings_changed, 50, 1, "rpm" };
+const AnalogMenuInfo minfowash_speed = { "Speed", 11, 10, 650, settings_changed, 50, 1, "rpm" };
 AnalogMenuItem menuwash_speed(&minfowash_speed, 250, &menuwashAMAX, INFO_LOCATION_PGM);
 const AnalogMenuInfo minfoRotations = { "Rotations", 39, 86, 10, settings_changed, 1, 1, "" };
 AnalogMenuItem menuRotations(&minfoRotations, 5, &menuwash_speed, INFO_LOCATION_PGM);

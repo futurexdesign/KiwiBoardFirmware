@@ -20,7 +20,19 @@
 #define EXPANSION3 (2u)
 #define EXPANSION4 (3u)
 
-
+#if defined(MOTOR_DRIVER_TMC2209)
+/**
+ * TMC2209 single-wire UART on the expansion header (hardware UART0).
+ * EXPANSION1 / GPIO0 = UART TX
+ * EXPANSION2 / GPIO1 = UART RX
+ *
+ * Wire both MCU pins to the driver PDN_UART pin:
+ *   TX (GPIO0) --[1k]--+-- PDN_UART
+ *   RX (GPIO1) --------+
+ */
+#define TMC_UART_TX EXPANSION1
+#define TMC_UART_RX EXPANSION2
+#endif
 
 /** SPI Bus for TMC5160 */
 #define TMC_SCLK (10u)

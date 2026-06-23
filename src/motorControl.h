@@ -4,10 +4,10 @@
  * Copyright (c) 2023 Kevin Balthaser kevin@nybblebyte.com
  */
 
-#include <TMC5160.h>
 #include <TaskManagerIO.h>
 #include "picoPlatform.h"
 #include "settings.h"
+#include "motorDriver.h"
 
 /** The definition of a callback from MotorControl object */
 typedef void (*MotorCallbackFn)(int program);
@@ -18,7 +18,7 @@ class MotorControl : public Executable
     public:
 
         /**
-         * Initialize the TMC5160 motion controller running on the provided platform.
+         * Initialize the motion controller running on the provided platform.
          */
         void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop);
 
@@ -57,6 +57,8 @@ class MotorControl : public Executable
           * @param enabled
           */
          void setStealthChop(bool enabled);
+         bool isStealthChopEnabled();
+         void printDriveStatus();
 
          /**
           * Return the current configured motor speed.
@@ -92,27 +94,20 @@ class MotorControl : public Executable
         /*
          * Return the current driver status
          */
-        TMC5160::DriverStatus getDriverStatus();
+        DriverStatus getDriverStatus();
 
     private:
-        TMC5160_SPI *motor;
+        MotorDriver *motor = nullptr;
         PicoPlatform* platform;
         MOTOR_STATE state;
 
         // Callback function to call when motor stops
         MotorCallbackFn stoppedCallback;
 
-        const float MICROSTEP_PER_REV = 51200.0;
-        const float TIME_CONST = 1.398101;
+        unsigned long last_exec_ms = 0;
 
         /**
-         * Convert the provided RPM to a VMAX value that the library understands, which is rot/sec * 200
-         *
-         *
-         * Process:
-         * - Convert RPM to Rot/Sec (/60)
-         * - vmax =  deg/sec *200
-
+         * Convert the provided RPM to full steps per second.
          *
          * @param rpm
          * @return

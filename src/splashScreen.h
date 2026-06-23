@@ -15,7 +15,7 @@ extern TFT_eSPI gfx; // populated by the linker
 
 
 void showSplash();
-void pngDraw(PNGDRAW *pDraw);
+int pngDraw(PNGDRAW *pDraw);
 
 
 

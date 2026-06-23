@@ -6,6 +6,7 @@
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
+#include "kiwiDebugLog.h"
 #include "hardware/pwm.h"
 
 #define FREQ 3000
@@ -31,23 +32,20 @@ void PicoPlatform::initializePlatform() {
     pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
-    // Sounder output   
-
-    // Initially set boolean  output to stop sounder during boot
+    // Sounder output on EXPANSION1 (disabled when expansion header is used for TMC2209 UART)
+#if !defined(MOTOR_DRIVER_TMC2209)
     pinMode(EXPANSION1, OUTPUT_12MA);
     digitalWrite(EXPANSION1, HIGH); // active LOW
 
-    // Setup PWM funcionality 
     gpio_set_function(EXPANSION1, GPIO_FUNC_PWM);
-    uint slice=pwm_gpio_to_slice_num (EXPANSION1); 
-    uint channel=pwm_gpio_to_channel (EXPANSION1);
+    slice = pwm_gpio_to_slice_num(EXPANSION1);
+    channel = pwm_gpio_to_channel(EXPANSION1);
 
-    // Set parameters for frequency and duty cycle
-    pwm_set_freq_duty(slice, channel, FREQ, sndLevel); 
-    pwm_set_enabled (slice, true); 
-    
-    // Activate output after PWM init to stop sounder output on boot
+    pwm_set_freq_duty(slice, channel, FREQ, sndLevel);
+    pwm_set_enabled(slice, true);
+
     digitalWrite(EXPANSION1, HIGH); // active LOW
+#endif
 
 
     // Turn on the LED
@@ -74,8 +72,10 @@ void PicoPlatform::initializePlatform() {
     SPI.begin(false);
 
 
-    // screenshot button, active high
+    // screenshot button on expansion header (disabled when header used for TMC2209 UART)
+#if !defined(MOTOR_DRIVER_TMC2209)
     pinMode(EXPANSION4, INPUT_PULLDOWN);
+#endif
 
     EEPROM.begin(768);
 }
@@ -137,7 +137,8 @@ bool PicoPlatform::isMotorEnabled() {
  * Invert the status because the sounder is enabled on logic LOW.
 */
 void PicoPlatform::enableSounder(bool activate) {
-   
+
+#if !defined(MOTOR_DRIVER_TMC2209)
     if(!activate) {
 
         pinMode(EXPANSION1, OUTPUT_12MA); 
@@ -151,7 +152,7 @@ void PicoPlatform::enableSounder(bool activate) {
         pwm_set_enabled (slice, activate); 
 
     }
-    
+#endif
 }
 
 
@@ -167,23 +168,23 @@ void PicoPlatform::enableSounder(bool activate) {
 void PicoPlatform::exec() {
 
     // update sound level if changed in menu
-    pwm_set_freq_duty(slice, channel, FREQ, sndLevel);// pass any saved changes to sound level
+#if !defined(MOTOR_DRIVER_TMC2209)
+    pwm_set_freq_duty(slice, channel, FREQ, sndLevel);
+#endif
 
     // Check heater and fan correlation.. this could probably just be a PIO
     if (heater_enabled && !fan_enabled) {
-        Serial.println("Force fan on, heater on...");
+        LOG_WARN("Force fan on, heater on...");
         // This honestly should never happen...
         enableFan(true);
     }
 
     if (in_cooldown) {
-        Serial.println("in cooldown");
-        Serial.print("- cooldown_end = ");
-        Serial.println(cooldown_end);
-        Serial.print("- millis.. ");
-        Serial.println(millis());
+        LOG_DEBUG("in cooldown");
+        LOG_DEBUG("cooldown_end:", cooldown_end);
+        LOG_DEBUG("millis:", millis());
         if (millis() >= cooldown_end) {
-            Serial.println("cooldown over, turn off fan");
+            LOG_INFO("cooldown over, turn off fan");
             enableFan(false);
             in_cooldown = false;
         }
