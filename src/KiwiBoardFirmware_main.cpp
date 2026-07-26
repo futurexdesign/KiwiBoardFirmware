@@ -420,11 +420,11 @@ void scheduleTasks() {
     taskManager.scheduleFixedRate(1000, platform, TIME_MILLIS);
 
     // Motor task is the highest priority.
-#if defined(MOTOR_DRIVER_TMC2209)
-    taskManager.scheduleFixedRate(20, motorControl, TIME_MILLIS);
-#else
-    taskManager.scheduleFixedRate(150, motorControl, TIME_MILLIS);
-#endif
+    if (motorControl != nullptr && motorControl->needsFastMotorTick()) {
+        taskManager.scheduleFixedRate(20, motorControl, TIME_MILLIS);
+    } else {
+        taskManager.scheduleFixedRate(150, motorControl, TIME_MILLIS);
+    }
 
     // UI update task is medium priority.  We are updating the countdown on the display.
     // Every half a second should be plenty for a smooth looking countdown
@@ -616,7 +616,7 @@ void resetIcons() {
 void screenCaptureTask() {
 
 #ifdef SCREENCAP
-#if !defined(MOTOR_DRIVER_TMC2209)
+#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
     // If EXPANSION1 is high, trigger the screen capture routine.
     if (digitalRead(EXPANSION1) == HIGH)
     {

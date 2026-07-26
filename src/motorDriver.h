@@ -93,6 +93,20 @@ class MotorDriver {
          * Print driver-specific diagnostic information to Serial.
          */
         virtual void printDriveStatus() = 0;
+
+        /**
+         * TMC2209 software planner needs a fast tick (~20 ms); TMC5160 does not.
+         */
+        virtual bool needsFastTick() const {
+            return false;
+        }
 };
 
-MotorDriver *createMotorDriver();
+enum DetectedMotorDriver {
+    DETECTED_NONE = 0,
+    DETECTED_TMC2209,
+    DETECTED_TMC5160
+};
+
+DetectedMotorDriver getDetectedMotorDriver();
+MotorDriver *createMotorDriver(PicoPlatform *platform);

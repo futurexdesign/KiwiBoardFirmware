@@ -10,9 +10,20 @@
 #define MOTOR_EN (9u)
 #define FAN_CTL (14u)
 #define HEATER_CTL (15u)
+
+#if defined(ARDUINO_GENERIC_RP2350)
+/**
+ * RP2350 (generic_rp2350) board revision: encoder/button moved off the
+ * RP2040 pins onto GPIO18-20.
+ */
+#define BUTTON (18u)
+#define ENC1 (19u)
+#define ENC2 (20u)
+#else
 #define BUTTON (6u)
 #define ENC1 (5u)
 #define ENC2 (4u)
+#endif
 
 /** Expansion Port Pins **/
 #define EXPANSION1 (0u)
@@ -20,7 +31,26 @@
 #define EXPANSION3 (2u)
 #define EXPANSION4 (3u)
 
-#if defined(MOTOR_DRIVER_TMC2209)
+/** SPI Bus for TMC5160 (TMC_SS is also half-duplex UART for TMC2209 autodetection) */
+#define TMC_SCLK (10u)
+#define TMC_MOSI (11u)
+#define TMC_MISO (12u)
+#define TMC_SS (13u)
+
+#if defined(TMC2209_UART_HALFDUPLEX)
+/**
+ * TMC2209 single-pin half-duplex UART on the TMC5160 chip-select pin.
+ * TMC_SS / GPIO13 = PDN_UART (TX and RX on one pin only — no expansion pins).
+ *
+ * PDN is hardwired to CS on this board:
+ *   GPIO13 -------- PDN_UART
+ *
+ * RX stays UART0 on GPIO13. TX uses pad OE overrides on the same pin
+ * (push-pull bits, then hi-Z to listen).
+ */
+#define TMC_UART_RX TMC_SS
+#define TMC_UART_TX TMC_UART_RX
+#elif defined(MOTOR_DRIVER_TMC2209)
 /**
  * TMC2209 single-wire UART on the expansion header (hardware UART0).
  * EXPANSION1 / GPIO0 = UART TX
@@ -34,13 +64,21 @@
 #define TMC_UART_RX EXPANSION2
 #endif
 
-/** SPI Bus for TMC5160 */
-#define TMC_SCLK (10u)
-#define TMC_MOSI (11u)
-#define TMC_MISO (12u)
-#define TMC_SS (13u)
-
 /** TFT Outputs */
+#if defined(ARDUINO_GENERIC_RP2350)
+/**
+ * RP2350 (generic_rp2350) board revision: LCD moved onto its own SPI0
+ * pin group (GPIO30-39). Keep these in sync with the TFT_* build flags
+ * for the rp2350-* environments in platformio.ini.
+ */
+#define LCD_MISO (36u)
+#define LCD_SCK (34u)
+#define LCD_MOSI (39u)
+#define LCD_CS (30u)
+#define LCD_DC (32u)
+#define LCD_RESET (31u)
+#define LCD_BACKLIGHT (37u)
+#else
 #define LCD_MISO (16u)
 #define LCD_SCK (18u)
 #define LCD_MOSI (19u)
@@ -48,6 +86,7 @@
 #define LCD_DC (21u)
 #define LCD_RESET (22u);
 #define LCD_BACKLIGHT (26)
+#endif
 
 
 class PicoPlatform : public Executable {

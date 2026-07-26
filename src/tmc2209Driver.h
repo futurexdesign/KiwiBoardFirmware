@@ -44,6 +44,10 @@ class TMC2209Driver : public MotorDriver {
         bool isStealthChopEnabled() override;
         void printDriveStatus() override;
 
+        bool needsFastTick() const override {
+            return true;
+        }
+
     private:
         void applyStealthChop(bool enabled);
         void applyVelocity(float vmax);

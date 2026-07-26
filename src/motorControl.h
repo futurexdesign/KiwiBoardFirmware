@@ -61,6 +61,11 @@ class MotorControl : public Executable
          void printDriveStatus();
 
          /**
+          * True when the active driver needs a ~20 ms motion tick (TMC2209).
+          */
+         bool needsFastMotorTick() const;
+
+         /**
           * Return the current configured motor speed.
           */
         int getMotorSpeed();

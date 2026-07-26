@@ -33,7 +33,7 @@ void PicoPlatform::initializePlatform() {
     digitalWrite(FAN_CTL, LOW);
 
     // Sounder output on EXPANSION1 (disabled when expansion header is used for TMC2209 UART)
-#if !defined(MOTOR_DRIVER_TMC2209)
+#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
     pinMode(EXPANSION1, OUTPUT_12MA);
     digitalWrite(EXPANSION1, HIGH); // active LOW
 
@@ -73,7 +73,7 @@ void PicoPlatform::initializePlatform() {
 
 
     // screenshot button on expansion header (disabled when header used for TMC2209 UART)
-#if !defined(MOTOR_DRIVER_TMC2209)
+#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
     pinMode(EXPANSION4, INPUT_PULLDOWN);
 #endif
 
@@ -138,7 +138,7 @@ bool PicoPlatform::isMotorEnabled() {
 */
 void PicoPlatform::enableSounder(bool activate) {
 
-#if !defined(MOTOR_DRIVER_TMC2209)
+#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
     if(!activate) {
 
         pinMode(EXPANSION1, OUTPUT_12MA); 
@@ -168,7 +168,7 @@ void PicoPlatform::enableSounder(bool activate) {
 void PicoPlatform::exec() {
 
     // update sound level if changed in menu
-#if !defined(MOTOR_DRIVER_TMC2209)
+#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
     pwm_set_freq_duty(slice, channel, FREQ, sndLevel);
 #endif
 

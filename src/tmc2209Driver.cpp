@@ -5,6 +5,7 @@
 #include "tmc2209Driver.h"
 #include "picoPlatform.h"
 #include "kiwiDebugLog.h"
+#include "tmcHalfDuplexUart.h"
 #include <Arduino.h>
 
 // TMC2209 internal clock: v[usteps/s] = VACTUAL * (fCLK / 2^24)
@@ -53,12 +54,30 @@ bool TMC2209Driver::init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &c
     platform->enableMotor(true);
 
     if (motor == nullptr) {
+#if defined(TMC2209_UART_HALFDUPLEX)
+        motor = new TMC2209Stepper(&tmcHalfDuplexStream(), TMC2209_RSENSE, TMC2209_DRIVER_ADDRESS);
+#else
         motor = new TMC2209Stepper(&Serial1, TMC2209_RSENSE, TMC2209_DRIVER_ADDRESS);
+#endif
     }
 
+#if defined(TMC2209_UART_HALFDUPLEX)
+    // Keep SPI SCLK/MOSI/MISO (GPIO10-12) driven low so they do not disturb PDN_UART.
+    pinMode(TMC_SCLK, OUTPUT);
+    digitalWrite(TMC_SCLK, LOW);
+    pinMode(TMC_MOSI, OUTPUT);
+    digitalWrite(TMC_MOSI, LOW);
+    pinMode(TMC_MISO, OUTPUT);
+    digitalWrite(TMC_MISO, LOW);
+
+    Serial.print(F("TMC2209 UART: half-duplex on GPIO"));
+    Serial.println(TMC_UART_RX);
+    tmcHalfDuplexBegin(115200);
+#else
     Serial1.setTX(TMC_UART_TX);
     Serial1.setRX(TMC_UART_RX);
     Serial1.begin(115200);
+#endif
     delay(100);
 
     motor->begin();
@@ -73,6 +92,10 @@ bool TMC2209Driver::init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &c
     motor->semin(0);
     motor->TPOWERDOWN(20);
     motor->iholddelay(2);
+#if defined(TMC2209_UART_HALFDUPLEX)
+    // Max senddelay (15 * 8 bit times ≈ 1 ms) so RX remux beats the reply.
+    motor->senddelay(15);
+#endif
 
     uint8_t irun = config.iRun;
     if (irun > 31) {

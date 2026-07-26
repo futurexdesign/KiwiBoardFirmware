@@ -11,7 +11,11 @@ void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t glob
     this->platform = curPlatform;
 
     if (motor == nullptr) {
-        motor = createMotorDriver();
+        motor = createMotorDriver(curPlatform);
+    }
+    if (motor == nullptr) {
+        LOG_WARN("Motor driver not detected");
+        return;
     }
 
     // Configure the active driver using menu values.
@@ -254,6 +258,9 @@ unsigned long MotorControl::getSecondsRemaining() {
  * Return the current DriverStatus from the underlying motor control
  */
 DriverStatus MotorControl::getDriverStatus() {
+    if (motor == nullptr) {
+        return DRIVER_UNKNOWN;
+    }
     return motor->getDriverStatus();
 }
 
@@ -298,6 +305,10 @@ void MotorControl::printDriveStatus() {
     Serial.print(F("motor enabled: "));
     Serial.println(platform->isMotorEnabled() ? F("true") : F("false"));
     motor->printDriveStatus();
+}
+
+bool MotorControl::needsFastMotorTick() const {
+    return motor != nullptr && motor->needsFastTick();
 }
 
 
