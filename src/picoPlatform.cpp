@@ -2,7 +2,9 @@
  * Copyright (c) 2023 Kevin Balthaser kevin@nybblebyte.com
 */
 #include <Arduino.h>
+#if !defined(ARDUINO_GENERIC_RP2350)
 #include <SPI.h>
+#endif
 #include <EEPROM.h>
 #include "picoPlatform.h"
 #include "settings.h"
@@ -24,7 +26,7 @@ void PicoPlatform::initializePlatform() {
 
     // Set output pins.   Adjust current limit if needed
     pinMode(MOTOR_EN, OUTPUT_8MA);
-    digitalWrite(MOTOR_EN, HIGH); //active low 
+    digitalWrite(MOTOR_EN, HIGH); //active low
 
     pinMode(HEATER_CTL, OUTPUT_8MA);
     digitalWrite(HEATER_CTL, LOW);
@@ -32,8 +34,8 @@ void PicoPlatform::initializePlatform() {
     pinMode(FAN_CTL, OUTPUT_12MA);
     digitalWrite(FAN_CTL, LOW);
 
-    // Sounder output on EXPANSION1 (disabled when expansion header is used for TMC2209 UART)
-#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
+    // Sounder output on EXPANSION1 (RP2350 uses expansion header for TMC2209 UART)
+#if !defined(ARDUINO_GENERIC_RP2350)
     pinMode(EXPANSION1, OUTPUT_12MA);
     digitalWrite(EXPANSION1, HIGH); // active LOW
 
@@ -49,35 +51,36 @@ void PicoPlatform::initializePlatform() {
 
 
     // Turn on the LED
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
+    pinMode(STATUS, OUTPUT);
+    digitalWrite(STATUS, HIGH);
 
-    // Remap IO to the correct pins for hardware SPI 1
+    // SPI1 for TMC5160 (RP2040 only)
+#if !defined(ARDUINO_GENERIC_RP2350)
     SPI1.setRX(TMC_MISO);
     SPI1.setTX(TMC_MOSI);
     SPI1.setSCK(TMC_SCLK);
-    SPI1.setCS(TMC_SS);
-
-    // start SPI with hardware chip select disabled (TMC library handles this). 
+    // Do not call SPI1.setCS(): TMC library drives CS as GPIO (begin(false)).
     SPI1.begin(false);
+    pinMode(TMC_SS, OUTPUT);
+    digitalWrite(TMC_SS, HIGH);
+#endif
 
     pinMode(LCD_BACKLIGHT, OUTPUT);
     analogWrite(LCD_BACKLIGHT, 125);
 
-    //Setup Hardware SPI0 for the TFT
-    SPI.setCS(LCD_CS);
-    SPI.setRX(LCD_MISO);
-    SPI.setTX(LCD_MOSI);
-    SPI.setSCK(LCD_SCK);
-    SPI.begin(false);
+    // Hold TFT CS idle-high. Do not call SPI.set*/begin() here:
+    // - TFT_eSPI owns its own SPIClassRP2040 instance (pins from -DTFT_* flags).
+    // - SPI.setCS(LCD_CS) panics on RP2350B: GPIO30 is not a valid SPI0 CS alt.
+    pinMode(LCD_CS, OUTPUT);
+    digitalWrite(LCD_CS, HIGH);
 
 
-    // screenshot button on expansion header (disabled when header used for TMC2209 UART)
-#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
+    // screenshot button on expansion header (RP2350 uses expansion header for TMC2209 UART)
+#if !defined(ARDUINO_GENERIC_RP2350)
     pinMode(EXPANSION4, INPUT_PULLDOWN);
 #endif
 
-    EEPROM.begin(768);
+     EEPROM.begin(768);
 }
 
 /**
@@ -138,7 +141,7 @@ bool PicoPlatform::isMotorEnabled() {
 */
 void PicoPlatform::enableSounder(bool activate) {
 
-#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
+#if !defined(ARDUINO_GENERIC_RP2350)
     if(!activate) {
 
         pinMode(EXPANSION1, OUTPUT_12MA); 
@@ -168,7 +171,7 @@ void PicoPlatform::enableSounder(bool activate) {
 void PicoPlatform::exec() {
 
     // update sound level if changed in menu
-#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
+#if !defined(ARDUINO_GENERIC_RP2350)
     pwm_set_freq_duty(slice, channel, FREQ, sndLevel);
 #endif
 
@@ -199,7 +202,7 @@ void PicoPlatform::exec() {
 
     // Heartbeat
     led = !led;
-    digitalWrite(LED_BUILTIN, led);
+    digitalWrite(STATUS, led);
 }
 
 void PicoPlatform::startCooldown() {

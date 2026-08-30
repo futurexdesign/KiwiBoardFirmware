@@ -36,38 +36,15 @@ See `TMC_calculations.xlsx` spreadsheet for information on current calculations.
 sure the full range of iRun represents all available current settings, and we can't accidentally try and send too much current
 to the stepper motor when adjusting iRun. 
 
-## Motor driver build targets
+## Build targets
 
-PlatformIO supports compile-time selection and boot-time autodetection, for both the
-RP2040 (Pico) board and the RP2350 (`generic_rp2350`) board revision (see
-[Board variants](#board-variants) below):
+Hardware is bifurcated by MCU board revision. Each PlatformIO environment builds
+one board + motor driver combination:
 
-- `pio run -e pico` / `pico-autodetect` — probe TMC2209 then TMC5160 at boot (recommended)
-- `pio run -e pico-tmc5160` — force SPI TMC5160
-- `pio run -e pico-tmc2209` — force TMC2209 with expansion-header UART (TX/RX + 1k)
-- `pio run -e pico-tmc2209-halfduplex` — force TMC2209 with single-pin half-duplex on `TMC_SS`
-- `pio run -e rp2350` / `rp2350-autodetect` — same as `pico-autodetect`, for the RP2350 board
-- `pio run -e rp2350-tmc5160` — same as `pico-tmc5160`, for the RP2350 board
-- `pio run -e rp2350-tmc2209` — same as `pico-tmc2209`, for the RP2350 board
-- `pio run -e rp2350-tmc2209-halfduplex` — same as `pico-tmc2209-halfduplex`, for the RP2350 board
+- `pio run -e pico` — RP2040 (Pico) with TMC5160 over SPI
+- `pio run -e rp2350` — RP2350 (`generic_rp2350`) with TMC2209 over UART
 
-### Autodetect probe order
-
-1. Half-duplex UART on `TMC_SS` (GPIO13) — accept TMC2209 if `version() == 0x21`
-2. If no response, reconfigure GPIO13 as SPI chip-select and probe TMC5160 IOIN — accept if version `0x30`
-
-### TMC2209 half-duplex wiring (autodetect / halfduplex builds)
-
-PDN_UART is hardwired to `TMC_SS` (GPIO13). Firmware uses that pin alone for
-half-duplex UART (TX and RX). Expansion header pins are not used.
-
-```
-GPIO13 (TMC_SS) -------- PDN_UART (hardwired)
-```
-
-SPI SCLK/MOSI/MISO (GPIO10-12) are driven low during 2209 operation.
-
-### TMC2209 expansion UART wiring (`pico-tmc2209` only)
+### TMC2209 UART wiring (RP2350 builds)
 
 | Expansion | GPIO | UART |
 |-----------|------|------|
@@ -79,20 +56,15 @@ GPIO0 (TX) ---[1k]---+--- PDN_UART (TMC2209)
 GPIO1 (RX) ----------+
 ```
 
-Sounder and screen-capture uses of the expansion pins are disabled in this build so these pins are free for UART.
-
-See also [`plans/tmc2209-runtime-detection-recommendation.md`](plans/tmc2209-runtime-detection-recommendation.md).
+Sounder and screen-capture uses of the expansion pins are disabled on RP2350 so
+these pins are free for UART.
 
 ## Board variants
 
-The firmware supports two board revisions, sharing all of the same source and the
-full motor driver build matrix described above. The board is selected purely by
-which PlatformIO environment you build/upload (`pico*` vs `rp2350*`); no other
-setup is required.
-
-| | RP2040 (`pico*`) | RP2350 (`rp2350*`, `generic_rp2350`) |
+| | RP2040 (`pico`) | RP2350 (`rp2350`, `generic_rp2350`) |
 |---|---|---|
 | MCU | RP2040 | RP2350 |
+| Motor driver | TMC5160 (SPI) | TMC2209 (UART) |
 | `BUTTON` | GPIO6 | GPIO18 |
 | `ENC1` | GPIO5 | GPIO19 |
 | `ENC2` | GPIO4 | GPIO20 |
@@ -105,13 +77,13 @@ setup is required.
 | LCD `BACKLIGHT` | GPIO26 | GPIO37 |
 
 † The actual TFT_eSPI chip-select is set independently via the `-DTFT_CS` build flag
-(GPIO20 on `pico*`, GPIO30 on `rp2350*`); `LCD_CS` in `picoPlatform.h` is only used for
+(GPIO20 on `pico`, GPIO30 on `rp2350`); `LCD_CS` in `picoPlatform.h` is only used for
 the (unused, hardware-CS-disabled) Arduino `SPI` object pin mapping. This mismatch
-pre-dates the RP2350 variant and is preserved as-is on `pico*` builds.
+pre-dates the RP2350 variant and is preserved as-is on `pico` builds.
 
 All other pins (motor enable, heater/fan control, expansion header, TMC SPI/UART pins)
 are unchanged between board revisions. The RP2350 pin overrides live in
 `src/picoPlatform.h`, guarded by `ARDUINO_GENERIC_RP2350` (defined automatically by
 the `generic_rp2350` board definition), and the LCD SPI pins are additionally set via
-`-DTFT_*` build flags in the `rp2350-*` environments of `platformio.ini`.
+`-DTFT_*` build flags in the `rp2350` environment of `platformio.ini`.
 

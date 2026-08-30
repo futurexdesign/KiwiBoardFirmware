@@ -31,26 +31,13 @@
 #define EXPANSION3 (2u)
 #define EXPANSION4 (3u)
 
-/** SPI Bus for TMC5160 (TMC_SS is also half-duplex UART for TMC2209 autodetection) */
+/** SPI Bus for TMC5160 */
 #define TMC_SCLK (10u)
 #define TMC_MOSI (11u)
 #define TMC_MISO (12u)
 #define TMC_SS (13u)
 
-#if defined(TMC2209_UART_HALFDUPLEX)
-/**
- * TMC2209 single-pin half-duplex UART on the TMC5160 chip-select pin.
- * TMC_SS / GPIO13 = PDN_UART (TX and RX on one pin only — no expansion pins).
- *
- * PDN is hardwired to CS on this board:
- *   GPIO13 -------- PDN_UART
- *
- * RX stays UART0 on GPIO13. TX uses pad OE overrides on the same pin
- * (push-pull bits, then hi-Z to listen).
- */
-#define TMC_UART_RX TMC_SS
-#define TMC_UART_TX TMC_UART_RX
-#elif defined(MOTOR_DRIVER_TMC2209)
+#if defined(ARDUINO_GENERIC_RP2350)
 /**
  * TMC2209 single-wire UART on the expansion header (hardware UART0).
  * EXPANSION1 / GPIO0 = UART TX
@@ -69,7 +56,7 @@
 /**
  * RP2350 (generic_rp2350) board revision: LCD moved onto its own SPI0
  * pin group (GPIO30-39). Keep these in sync with the TFT_* build flags
- * for the rp2350-* environments in platformio.ini.
+ * for the rp2350 environment in platformio.ini.
  */
 #define LCD_MISO (36u)
 #define LCD_SCK (34u)
@@ -78,6 +65,8 @@
 #define LCD_DC (32u)
 #define LCD_RESET (31u)
 #define LCD_BACKLIGHT (37u)
+#define STATUS (25u)
+
 #else
 #define LCD_MISO (16u)
 #define LCD_SCK (18u)
@@ -86,6 +75,7 @@
 #define LCD_DC (21u)
 #define LCD_RESET (22u);
 #define LCD_BACKLIGHT (26)
+#define STATUS (LED_BUILTIN)
 #endif
 
 

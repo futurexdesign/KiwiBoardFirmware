@@ -616,7 +616,7 @@ void resetIcons() {
 void screenCaptureTask() {
 
 #ifdef SCREENCAP
-#if !(defined(MOTOR_DRIVER_TMC2209) && !defined(TMC2209_UART_HALFDUPLEX))
+#if !defined(ARDUINO_GENERIC_RP2350)
     // If EXPANSION1 is high, trigger the screen capture routine.
     if (digitalRead(EXPANSION1) == HIGH)
     {

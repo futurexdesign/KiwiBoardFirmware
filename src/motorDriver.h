@@ -102,11 +102,4 @@ class MotorDriver {
         }
 };
 
-enum DetectedMotorDriver {
-    DETECTED_NONE = 0,
-    DETECTED_TMC2209,
-    DETECTED_TMC5160
-};
-
-DetectedMotorDriver getDetectedMotorDriver();
 MotorDriver *createMotorDriver(PicoPlatform *platform);

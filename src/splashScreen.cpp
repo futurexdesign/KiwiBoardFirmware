@@ -40,6 +40,12 @@ int pngDraw(PNGDRAW *pDraw)
     static uint16_t dmaBuffer[MAX_IMAGE_WIDTH]; // static so buffer persists after fn exit
 
     png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
-    gfx.pushImageDMA(0, 0 + pDraw->y, pDraw->iWidth, 1, lineBuffer, dmaBuffer);
+
+    // TFT_eSPI::pushImageDMA() memcpy's into dmaBuffer *before* waiting for the
+    // previous transfer. On RP2350 the PNG decode is fast enough to race that
+    // copy and corrupt in-flight pixels (wrong colors / artifacts). Menu drawing
+    // does not use this DMA path, which is why only the splash looked broken.
+    gfx.dmaWait();
+    gfx.pushImageDMA(0, pDraw->y, pDraw->iWidth, 1, lineBuffer, dmaBuffer);
     return 1;
 }
