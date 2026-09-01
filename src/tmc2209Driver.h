@@ -20,7 +20,7 @@ class TMC2209Driver : public MotorDriver {
     public:
         ~TMC2209Driver() override;
 
-        bool init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &config) override;
+        bool init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &config) override;
         void stop() override;
 
         void setRampMode(RampMode mode) override;
@@ -54,7 +54,7 @@ class TMC2209Driver : public MotorDriver {
         int32_t vmaxToVactual(float vmax) const;
 
         TMC2209Stepper *motor = nullptr;
-        PicoPlatform *platform = nullptr;
+        Platform *platform = nullptr;
         SoftwareMotionPlanner planner;
         RampMode ramp_mode = RAMP_VELOCITY;
         int32_t target_position = 0;

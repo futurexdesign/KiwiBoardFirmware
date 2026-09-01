@@ -6,8 +6,8 @@
 */
 //
 
-#include "picoPlatform.h" // Need the platform pin definitions
 #include <tcMenu.h>
+#include <stdint.h>
 
 #ifndef KIWIBOARDFIRMWARE_ENCODERSHIM_H
 #define KIWIBOARDFIRMWARE_ENCODERSHIM_H
@@ -22,10 +22,10 @@ class EncoderShim : EncoderListener, SwitchListener {
         EncoderShim();
 
         /**
-         * Initialize the encoder and button for pins defined in picoPlatform.   This must be called
+         * Initialize the encoder and button for the provided GPIO pins. This must be called
          * before setupMenu.
          */
-        void initForEncoder();
+        void initForEncoder(uint8_t button, uint8_t enc1, uint8_t enc2);
 
         /**
          * Register the function that should be called when the encoder value changes.
@@ -57,8 +57,12 @@ class EncoderShim : EncoderListener, SwitchListener {
         EncoderShimFn encoderChangeFn = nullptr;
         EncoderShimFn encoderClickFn = nullptr;
 
-        int encoderValue = 0;// last known encoder value
+        uint8_t button_pin = 0;
+        uint8_t enc1_pin = 0;
+        uint8_t enc2_pin = 0;
         bool reversed = false;
+
+        int encoderValue = 0;
 
 };
 

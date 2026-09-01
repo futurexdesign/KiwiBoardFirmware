@@ -3,7 +3,7 @@
  */
 
 #include "tmc5160Driver.h"
-#include "picoPlatform.h"
+#include "platform.h"
 #include <Arduino.h>
 
 static void printBoolLine(const __FlashStringHelper *label, bool value) {
@@ -53,8 +53,9 @@ TMC5160Driver::~TMC5160Driver() {
     motor = nullptr;
 }
 
-bool TMC5160Driver::init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &config) {
+bool TMC5160Driver::init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &config) {
     this->platform = curPlatform;
+    const PlatformPins &pins = platform->getPins();
 
     // start motor controller. wants to be enabled to talk to it..
     platform->enableMotor(true);
@@ -67,7 +68,7 @@ bool TMC5160Driver::init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &c
     motorParams.ihold = 0;                   // holding current, 0 enables freewheel
 
     if (motor == nullptr) {
-        motor = new TMC5160_SPI(TMC_SS, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
+        motor = new TMC5160_SPI(pins.tmc_ss, TMC5160::DEFAULT_F_CLK, SPISettings(1000000, MSBFIRST, SPI_MODE0), SPI1);
     }
 
     // Library initializes with StealthChop enabled.

@@ -5,7 +5,7 @@
 
 #pragma once
 #include <TaskManagerIO.h>
-#include "picoPlatform.h"
+#include "platform.h"
 
 #define SIZE 10
 
@@ -23,7 +23,7 @@ class BeepHandler : public Executable
     bool get_menuSound();
     void set_sndLevel(int);
     
-    BeepHandler(PicoPlatform *platform); // constructor declaration (receives pointer to platform object)
+    BeepHandler(Platform *platform);
 
     struct tone {
         // Initialize the tone array (max 10 notes)
@@ -44,6 +44,6 @@ class BeepHandler : public Executable
     
     bool menuSound;
     int sndLevel;
-    PicoPlatform *priv_platform;
+    Platform *priv_platform;
 
 };

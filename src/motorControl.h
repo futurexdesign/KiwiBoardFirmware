@@ -5,7 +5,7 @@
  */
 
 #include <TaskManagerIO.h>
-#include "picoPlatform.h"
+#include "platform.h"
 #include "settings.h"
 #include "motorDriver.h"
 
@@ -20,7 +20,7 @@ class MotorControl : public Executable
         /**
          * Initialize the motion controller running on the provided platform.
          */
-        void initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop);
+        void initMotionController(Platform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop);
 
         void stopMotion();
         void startProgram(int programId, SETTINGS currentSettings);
@@ -103,7 +103,7 @@ class MotorControl : public Executable
 
     private:
         MotorDriver *motor = nullptr;
-        PicoPlatform* platform;
+        Platform *platform;
         MOTOR_STATE state;
 
         // Callback function to call when motor stops

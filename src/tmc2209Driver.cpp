@@ -3,7 +3,7 @@
  */
 
 #include "tmc2209Driver.h"
-#include "picoPlatform.h"
+#include "platform.h"
 #include "kiwiDebugLog.h"
 #include <Arduino.h>
 
@@ -46,8 +46,9 @@ void TMC2209Driver::applyStealthChop(bool enabled) {
     }
 }
 
-bool TMC2209Driver::init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &config) {
+bool TMC2209Driver::init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &config) {
     this->platform = curPlatform;
+    const PlatformPins &pins = platform->getPins();
 
     // start motor controller. wants to be enabled to talk to it..
     platform->enableMotor(true);
@@ -56,12 +57,10 @@ bool TMC2209Driver::init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &c
         motor = new TMC2209Stepper(&Serial1, TMC2209_RSENSE, TMC2209_DRIVER_ADDRESS);
     }
 
-    Serial.print(F("TMC2209 UART: TX GPIO"));
-    Serial.print(TMC_UART_TX);
-    Serial.print(F(" / RX GPIO"));
-    Serial.println(TMC_UART_RX);
-    Serial1.setTX(TMC_UART_TX);
-    Serial1.setRX(TMC_UART_RX);
+    Serial.print(pins.tmc_uart_tx);
+    Serial.println(pins.tmc_uart_rx);
+    Serial1.setTX(pins.tmc_uart_tx);
+    Serial1.setRX(pins.tmc_uart_rx);
     Serial1.begin(115200);
     delay(100);
 

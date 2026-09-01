@@ -10,12 +10,15 @@ EncoderShim::EncoderShim() {
 
 }
 
-void EncoderShim::initForEncoder() {
+void EncoderShim::initForEncoder(uint8_t button, uint8_t enc1, uint8_t enc2) {
+    button_pin = button;
+    enc1_pin = enc1;
+    enc2_pin = enc2;
 
     switches.init(internalDigitalIo(), SWITCHES_NO_POLLING, true);
 
-    switches.addSwitchListener(BUTTON, this, NO_REPEAT, false);
-    setupRotaryEncoderWithInterrupt(ENC1, ENC2, this, HWACCEL_NONE, FULL_CYCLE);
+    switches.addSwitchListener(button_pin, this, NO_REPEAT, false);
+    setupRotaryEncoderWithInterrupt(enc1_pin, enc2_pin, this, HWACCEL_NONE, FULL_CYCLE);
 }
 
 void EncoderShim::encoderHasChanged(int newValue) {
@@ -72,7 +75,7 @@ void EncoderShim::registerClickCallback(EncoderShimFn callback) {
  */
 void EncoderShim::invertEncoderDirection() {
     reversed = true;
-    setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, FULL_CYCLE);
+    setupRotaryEncoderWithInterrupt(enc2_pin, enc1_pin, this, HWACCEL_NONE, FULL_CYCLE);
 }
 
 /**
@@ -80,10 +83,10 @@ void EncoderShim::invertEncoderDirection() {
  */
 void EncoderShim::setQuarterCycleEncoder() {
     if (reversed) {
-        setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupRotaryEncoderWithInterrupt(enc2_pin, enc1_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
 
     } else {
-        setupRotaryEncoderWithInterrupt(ENC1, ENC2, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupRotaryEncoderWithInterrupt(enc1_pin, enc2_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
     }
 
 
@@ -94,10 +97,10 @@ void EncoderShim::setQuarterCycleEncoder() {
  */
 void EncoderShim::setHalfCycleEncoder() {
     if (reversed) {
-        setupRotaryEncoderWithInterrupt(ENC2, ENC1, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupRotaryEncoderWithInterrupt(enc2_pin, enc1_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
 
     } else {
-        setupRotaryEncoderWithInterrupt(ENC1, ENC2, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupRotaryEncoderWithInterrupt(enc1_pin, enc2_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
     }
 
 

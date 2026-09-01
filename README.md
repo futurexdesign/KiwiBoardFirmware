@@ -27,9 +27,6 @@ If you are on windows 11 home, you will need to enable gpedit inorder to enable 
 ## User Interface
 The user interface is coded using tcMenu.   To edit the menu structure, the tcMenu Designer tool should be used.   The kiwiboard.emf file contains the menu definitions. 
 
-**NOTE** When you regnerate the code in tcMenu Designer, you will need to add in the include for picoPlatform.h to the kiwiboardMenu.h file, as the project is set to reference the defines done in the header file. 
-
-
 ## Calculations for TMC5160 
 See `TMC_calculations.xlsx` spreadsheet for information on current calculations. 
 - GlobalScaler should be set such that IRun = 31 represents the maximum RMS current desired.  This makes 
@@ -77,13 +74,13 @@ these pins are free for UART.
 | LCD `BACKLIGHT` | GPIO26 | GPIO37 |
 
 † The actual TFT_eSPI chip-select is set independently via the `-DTFT_CS` build flag
-(GPIO20 on `pico`, GPIO30 on `rp2350`); `LCD_CS` in `picoPlatform.h` is only used for
+(GPIO20 on `pico`, GPIO30 on `rp2350`); `lcd_cs` in the platform pin tables is only used for
 the (unused, hardware-CS-disabled) Arduino `SPI` object pin mapping. This mismatch
 pre-dates the RP2350 variant and is preserved as-is on `pico` builds.
 
 All other pins (motor enable, heater/fan control, expansion header, TMC SPI/UART pins)
-are unchanged between board revisions. The RP2350 pin overrides live in
-`src/picoPlatform.h`, guarded by `ARDUINO_GENERIC_RP2350` (defined automatically by
-the `generic_rp2350` board definition), and the LCD SPI pins are additionally set via
-`-DTFT_*` build flags in the `rp2350` environment of `platformio.ini`.
+are unchanged between board revisions. Board-specific GPIO mappings live in
+[`src/rp2040Platform.h`](src/rp2040Platform.h) and [`src/rp2350Platform.h`](src/rp2350Platform.h);
+PlatformIO selects the implementation at link time via `build_src_filter`. LCD SPI pins
+are additionally set via `-DTFT_*` build flags in `platformio.ini`.
 

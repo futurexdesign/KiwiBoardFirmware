@@ -2,7 +2,7 @@
  * Copyright (c) 2023 Kevin Balthaser kevin@nybblebyte.com
  */
 #include <Arduino.h>
-#include "picoPlatform.h"
+#include "platformFactory.h"
 #include "motorControl.h"
 #include "KiwiBoardFirmware_menu.h"
 #include <BaseDialog.h>
@@ -13,10 +13,6 @@
 #include "heat.h"
 #include "Sounder.h"
 
-#ifdef SCREENCAP
-#include "screenServer.h"
-#endif
-
 #include "icons.h"
 #include "MenuChangeObserver.h"
 #include "serialCli.h"
@@ -25,7 +21,7 @@
 const char VERSION_NUM[] PROGMEM = "2.0.0-TMC";
 
 
-PicoPlatform *platform;
+Platform *platform;
 MotorControl *motorControl = nullptr;
 MenuChangeObserver *observer;
 EncoderShim *encoderShim;
@@ -57,7 +53,7 @@ void setup() {
     debugLogInit();
     Serial.println("Booted");
 
-    platform = new PicoPlatform();
+    platform = createPlatform();
     platform->initializePlatform();
 
     // Init the graphics subsystem and trigger the splash.
@@ -75,7 +71,8 @@ void setup() {
 
     // Setup switches and encoder?
     encoderShim = new EncoderShim();
-    encoderShim->initForEncoder();
+    const PlatformPins &pins = platform->getPins();
+    encoderShim->initForEncoder(pins.button, pins.enc1, pins.enc2);
     encoderShim->registerChangeCallback(handleEncoderMove);
     encoderShim->registerClickCallback(checkLongPress);
     // encoderShim->setHalfCycleEncoder();
@@ -94,7 +91,7 @@ void setup() {
     serialCliInit(motorControl);
 
     // restore backlight setting
-    PicoPlatform::setBacklight(menuBacklight.getIntValueIncludingOffset());
+    platform->setBacklight(menuBacklight.getIntValueIncludingOffset());
 
     // Check for encoder inversion..
     if (menuInvertEncoder.getBoolean()) {
@@ -354,7 +351,7 @@ void CALLBACK_FUNCTION iRunChanged(int id) {
  */
 void CALLBACK_FUNCTION backlightChange(int id) {
     int newVal = menuBacklight.getIntValueIncludingOffset();
-    PicoPlatform::setBacklight(newVal);
+    platform->setBacklight(newVal);
 }
 
 
@@ -614,15 +611,8 @@ void resetIcons() {
  * Screen Capture Task
  */
 void screenCaptureTask() {
-
 #ifdef SCREENCAP
-#if !defined(ARDUINO_GENERIC_RP2350)
-    // If EXPANSION1 is high, trigger the screen capture routine.
-    if (digitalRead(EXPANSION1) == HIGH)
-    {
-        screenServer();
-    }
-#endif
+    platform->pollScreenCapture();
 #endif
 }
 

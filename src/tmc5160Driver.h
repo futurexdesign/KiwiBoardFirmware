@@ -14,7 +14,7 @@ class TMC5160Driver : public MotorDriver {
     public:
         ~TMC5160Driver() override;
 
-        bool init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &config) override;
+        bool init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &config) override;
         void stop() override;
 
         void setRampMode(RampMode mode) override;
@@ -42,6 +42,6 @@ class TMC5160Driver : public MotorDriver {
         static DriverStatus mapStatus(TMC5160::DriverStatus status);
 
         TMC5160_SPI *motor = nullptr;
-        PicoPlatform *platform = nullptr;
+        Platform *platform = nullptr;
         bool stealth_chop = true;
 };

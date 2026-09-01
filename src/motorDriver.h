@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-class PicoPlatform;
+class Platform;
 
 enum DriverStatus {
     DRIVER_OK = 0,
@@ -46,7 +46,7 @@ class MotorDriver {
         /**
          * Initialize the driver on the provided platform using menu-configured values.
          */
-        virtual bool init(PicoPlatform *curPlatform, const MOTOR_DRIVER_CONFIG &config) = 0;
+        virtual bool init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &config) = 0;
 
         /**
          * Stop all motion immediately.
@@ -101,5 +101,3 @@ class MotorDriver {
             return false;
         }
 };
-
-MotorDriver *createMotorDriver(PicoPlatform *platform);

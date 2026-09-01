@@ -3,15 +3,15 @@
  */
 
 #include "motorControl.h"
-#include "picoPlatform.h"
+#include "platform.h"
 #include "KiwiBoardFirmware_menu.h"
 #include "kiwiDebugLog.h"
 
-void MotorControl::initMotionController(PicoPlatform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
+void MotorControl::initMotionController(Platform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
     this->platform = curPlatform;
 
     if (motor == nullptr) {
-        motor = createMotorDriver(curPlatform);
+        motor = platform->createMotorDriver();
     }
     if (motor == nullptr) {
         LOG_WARN("Motor driver not detected");

@@ -4,7 +4,7 @@
 //
 
 #include "Sounder.h"
-#include "picoPlatform.h"
+#include "platform.h"
 #include "KiwiBoardFirmware_menu.h"
 #include "kiwiDebugLog.h"
 
@@ -115,7 +115,7 @@ bool BeepHandler::get_menuSound() {
 
 // BeepHandler constructor
 
-BeepHandler::BeepHandler(PicoPlatform *platform) {
+BeepHandler::BeepHandler(Platform *platform) {
 
     this->priv_platform = platform;
     menuSound = false;
