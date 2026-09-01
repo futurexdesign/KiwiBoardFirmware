@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/cache@v3 
         with:
           path: |
             ~/.cache/pip
@@ -22,7 +22,7 @@ jobs:
 
       - name: Build PlatformIO Project
         run: pio run
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: firmware
           path: .pio/build/pico/firmware.uf2
