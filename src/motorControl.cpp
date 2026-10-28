@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "KiwiBoardFirmware_menu.h"
 #include "kiwiDebugLog.h"
+#include <math.h>
 
 void MotorControl::initMotionController(Platform *curPlatform, uint16_t globalScaler, uint16_t iRun, bool stealthChop) {
     this->platform = curPlatform;
@@ -64,6 +65,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         state.rpm = currentSettings.wash_speed;
 
         motor->setAcceleration(currentSettings.wash_amax);
+        state.accel = currentSettings.wash_amax;
 
         // Rotate the configured number of full steps
         // 200 full steps per rotation
@@ -86,6 +88,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         motor->setRampMode(RAMP_VELOCITY);
 
         motor->setAcceleration(currentSettings.spin_amax);
+        state.accel = currentSettings.spin_amax;
 
         motor->setMaxSpeed(rpmToVmax(currentSettings.spin_speed));     // Full steps per second
         state.rpm = currentSettings.spin_speed;
@@ -104,6 +107,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         // Set low accel, high rpm, check back to see if reached speed - yes? then decellerate to zero
         motor->setRampMode(RAMP_VELOCITY);
         motor->setAcceleration(100); // 300 microsteps per unit of time
+        state.accel = 100;
         motor->setMaxSpeed(rpmToVmax(400)); // RPM 600
 
         state.direction = true;
@@ -124,6 +128,7 @@ void MotorControl::startProgram(int programId, SETTINGS currentSettings) {
         // Set motor control to velocity mode, setup accelerations, max desired speed
         motor->setRampMode(RAMP_VELOCITY);
         motor->setAcceleration(300);
+        state.accel = 300;
         motor->setMaxSpeed(rpmToVmax(currentSettings.dry_speed));
         state.rpm = currentSettings.dry_speed;
 
@@ -159,8 +164,10 @@ void MotorControl::exec() {
                 stoppedCallback(state.program);
             }
         } else {
-            // Give it 50 ticks to finish before stopping it manually
-            if (!state.isTesting && state.stopping_cnt == 50) {
+            // Wait for the software/hardware decel ramp before force-disabling the driver.
+            // Old fixed 50-tick budget (~1s on the 2209 20ms tick) was far too short for spin.
+            if (!state.isTesting && millis() >= state.stopping_deadline_ms) {
+                motor->setMaxSpeed(0);
                 motor->setCurrentPosition(0, true); // Reset position
                 motor->setTargetPosition(0); // Reset position
 
@@ -171,8 +178,6 @@ void MotorControl::exec() {
                 if (stoppedCallback != nullptr) {
                     stoppedCallback(state.program);
                 }
-            } else {
-                state.stopping_cnt++;
             }
         }
 
@@ -229,16 +234,43 @@ bool MotorControl::isRunning() {
 
 void MotorControl::stopMotion() {
 
-    if (state.isRunning) {
-        if (getRunningProgram() != 0) {
-            // if we are in a wash cycle... let the current motion finish, otherwise, set speed to zero
-            // and let the motion controller ramp down.
-            motor->setMaxSpeed(0);
-        }
-
-        state.isStopping = true;
-        state.stopping_cnt = 0;
+    if (!state.isRunning || state.isStopping) {
+        return;
     }
+
+    if (getRunningProgram() != 0) {
+        // Velocity-mode programs (spin/dry): command zero speed and let the ramp decelerate.
+        motor->setMaxSpeed(0);
+    }
+
+    state.isStopping = true;
+
+    // Allow enough wall-clock time for the configured decel ramp (+ margin) before
+    // force-disabling the driver. Wash finishes the current stroke, so budget remaining
+    // distance at cruise; spin/dry use v/a from the live speed.
+    float accel = (float)state.accel;
+    if (accel < 1.0f) {
+        accel = 200.0f;
+    }
+
+    unsigned long timeoutMs;
+    if (getRunningProgram() == 0) {
+        const float remaining =
+            fabsf((float)motor->getTargetPosition() - (float)motor->getCurrentPosition());
+        const float cruise = fmaxf(fabsf(motor->getCurrentSpeed()), 1.0f);
+        timeoutMs = (unsigned long)((remaining / cruise) * 1000.0f) + 3000UL;
+    } else {
+        const float speed = fabsf(motor->getCurrentSpeed());
+        timeoutMs = (unsigned long)((speed / accel) * 1000.0f) + 3000UL;
+    }
+
+    if (timeoutMs < 5000UL) {
+        timeoutMs = 5000UL;
+    }
+    if (timeoutMs > 60000UL) {
+        timeoutMs = 60000UL;
+    }
+    state.stopping_deadline_ms = millis() + timeoutMs;
 }
 
 unsigned long MotorControl::getSecondsRemaining() {

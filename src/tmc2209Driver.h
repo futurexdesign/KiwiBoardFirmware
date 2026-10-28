@@ -10,8 +10,9 @@
 #include "motorDriver.h"
 #include "softwareMotionPlanner.h"
 #include <TMCStepper.h>
+#include "tmcCurrent.h"
 
-#define TMC2209_RSENSE 0.11f
+#define TMC2209_RSENSE TMC2209_RSENSE_OHM
 #define TMC2209_DRIVER_ADDRESS 0b00
 #define TMC2209_MICROSTEPS 256
 
@@ -61,4 +62,7 @@ class TMC2209Driver : public MotorDriver {
         int32_t last_vactual = 0;
         unsigned long last_tick_ms = 0;
         bool stealth_chop = true;
+        uint16_t target_run_ma = 0;
+        uint16_t configured_scaler = 0;
+        uint16_t configured_irun = 0;
 };

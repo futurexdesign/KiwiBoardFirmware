@@ -4,6 +4,7 @@
 
 #include "tmc5160Driver.h"
 #include "platform.h"
+#include "tmcCurrent.h"
 #include <Arduino.h>
 
 static void printBoolLine(const __FlashStringHelper *label, bool value) {
@@ -63,7 +64,7 @@ bool TMC5160Driver::init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &confi
     TMC5160::PowerStageParameters powerStageParams; // defaults.
     TMC5160::MotorParameters motorParams;
 
-    motorParams.globalScaler = config.globalScaler; // Use Excel file to find correct scaler so that ihold=31 is max desired current
+    motorParams.globalScaler = config.globalScaler; // TMC_calculations.xlsx: IRun=31 => max desired RMS
     motorParams.irun = config.iRun;                 // 31 is max running current, adjust accordingly.
     motorParams.ihold = 0;                   // holding current, 0 enables freewheel
 
@@ -73,6 +74,12 @@ bool TMC5160Driver::init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &confi
 
     // Library initializes with StealthChop enabled.
     motor->begin(powerStageParams, motorParams, TMC5160::NORMAL_MOTOR_DIRECTION);
+
+    // OT shutdown at 143°C (otselect=01). OTPW pre-warning remains fixed at 120°C.
+    TMC5160_Reg::DRV_CONF_Register drvConf = { 0 };
+    drvConf.value = motor->readRegister(TMC5160_Reg::DRV_CONF);
+    drvConf.otselect = 1;
+    motor->writeRegister(TMC5160_Reg::DRV_CONF, drvConf.value);
 
     // Disable the transition to SpreadCycle, we don't need accuracy, prefer StealthChop
     if (config.stealthChop) {
@@ -249,6 +256,8 @@ void TMC5160Driver::printDriveStatus() {
     Serial.println((uint32_t)iholdIrun.ihold);
     Serial.print(F("  iholddelay: "));
     Serial.println((uint32_t)iholdIrun.iholddelay);
+    Serial.print(F("  expected RMS mA (menu model): "));
+    Serial.println(tmcMenuCurrentMa((uint16_t)globalScalerVal, (uint16_t)iholdIrun.irun));
     printBoolLine(F("  en_pwm_mode (stealthChop): "), static_cast<bool>(gconf.en_pwm_mode));
     printBoolLine(F("  stealthChop (configured): "), stealth_chop);
     printBoolLine(F("  pwm_autoscale: "), static_cast<bool>(pwmconf.pwm_autoscale));

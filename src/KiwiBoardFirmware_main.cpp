@@ -18,7 +18,11 @@
 #include "serialCli.h"
 
 // Version Number
-const char VERSION_NUM[] PROGMEM = "2.0.0-TMC";
+#ifdef _RP2350
+const char VERSION_NUM[] PROGMEM = "2.0-2350";
+#else
+const char VERSION_NUM[] PROGMEM = "2.0-2040";
+#endif
 
 
 Platform *platform;
@@ -59,7 +63,6 @@ void setup() {
     // Init the graphics subsystem and trigger the splash.
     gfx.begin();
     gfx.setRotation(3);
-    gfx.initDMA(true);
 
     showSplash();
 
@@ -149,9 +152,10 @@ void stoppedCallback(int pgm) {
  */
 void ui_tick() {
 
-    // Check for motor status, if overheated or shorted, alert user
+    // Check for motor status, if overheated or shorted, alert user.
+    // OTPW (120°C pre-warning) is informational only; halt on OT shutdown.
     DriverStatus curStatus = motorControl->getDriverStatus();
-    if (!DIALOG && curStatus != DRIVER_OK) {
+    if (!DIALOG && curStatus != DRIVER_OK && curStatus != DRIVER_OTPW) {
 
         // launch error dialog
         motorErrorDialog(curStatus);
@@ -225,7 +229,6 @@ void motorErrorDialog(DriverStatus status) {
     char msg[50]; // 200 character string
     switch (status) {
         case DRIVER_OT:
-        case DRIVER_OTPW:
             strcpy(msg, "Driver is overheating");
             break;
         case DRIVER_S2VSA:

@@ -18,7 +18,10 @@ void EncoderShim::initForEncoder(uint8_t button, uint8_t enc1, uint8_t enc2) {
     switches.init(internalDigitalIo(), SWITCHES_NO_POLLING, true);
 
     switches.addSwitchListener(button_pin, this, NO_REPEAT, false);
-    setupRotaryEncoderWithInterrupt(enc1_pin, enc2_pin, this, HWACCEL_NONE, FULL_CYCLE);
+    // HwStateRotaryEncoder is more tolerant of delayed ISR handling than the
+    // older edge counter — important on RP2350 where the 20 ms motor tick + UART
+    // can postpone TaskManager encoder processing.
+    setupStateMachineRotaryEncoder(enc1_pin, enc2_pin, this, HWACCEL_NONE, FULL_CYCLE);
 }
 
 void EncoderShim::encoderHasChanged(int newValue) {
@@ -75,7 +78,7 @@ void EncoderShim::registerClickCallback(EncoderShimFn callback) {
  */
 void EncoderShim::invertEncoderDirection() {
     reversed = true;
-    setupRotaryEncoderWithInterrupt(enc2_pin, enc1_pin, this, HWACCEL_NONE, FULL_CYCLE);
+    setupStateMachineRotaryEncoder(enc2_pin, enc1_pin, this, HWACCEL_NONE, FULL_CYCLE);
 }
 
 /**
@@ -83,10 +86,10 @@ void EncoderShim::invertEncoderDirection() {
  */
 void EncoderShim::setQuarterCycleEncoder() {
     if (reversed) {
-        setupRotaryEncoderWithInterrupt(enc2_pin, enc1_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupStateMachineRotaryEncoder(enc2_pin, enc1_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
 
     } else {
-        setupRotaryEncoderWithInterrupt(enc1_pin, enc2_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupStateMachineRotaryEncoder(enc1_pin, enc2_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
     }
 
 
@@ -97,12 +100,11 @@ void EncoderShim::setQuarterCycleEncoder() {
  */
 void EncoderShim::setHalfCycleEncoder() {
     if (reversed) {
-        setupRotaryEncoderWithInterrupt(enc2_pin, enc1_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupStateMachineRotaryEncoder(enc2_pin, enc1_pin, this, HWACCEL_NONE, HALF_CYCLE);
 
     } else {
-        setupRotaryEncoderWithInterrupt(enc1_pin, enc2_pin, this, HWACCEL_NONE, QUARTER_CYCLE);
+        setupStateMachineRotaryEncoder(enc1_pin, enc2_pin, this, HWACCEL_NONE, HALF_CYCLE);
     }
 
 
 }
-

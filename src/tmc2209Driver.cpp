@@ -39,10 +39,15 @@ void TMC2209Driver::applyVelocity(float vmax) {
 void TMC2209Driver::applyStealthChop(bool enabled) {
     stealth_chop = enabled;
     if (enabled) {
+        // Always-StealthChop (TPWMTHRS=0): no Stealth↔Spread handoff jerk on the basket.
         motor->en_spreadCycle(false);
         motor->pwm_autoscale(true);
+        motor->pwm_autograd(true);
+        motor->pwm_freq(1); // 2/683 * fCLK ≈ 35 kHz @ 12 MHz (matches 5160 defaults)
+        motor->TPWMTHRS(0);
     } else {
         motor->en_spreadCycle(true);
+        motor->TPWMTHRS(0);
     }
 }
 
@@ -72,24 +77,24 @@ bool TMC2209Driver::init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &confi
     motor->I_scale_analog(false);
     motor->internal_Rsense(false);
     motor->microsteps(TMC2209_MICROSTEPS);
-    motor->TPWMTHRS(0);
     motor->semin(0);
     motor->TPOWERDOWN(20);
     motor->iholddelay(2);
 
-    uint8_t irun = config.iRun;
-    if (irun > 31) {
-        irun = 31;
+    // Translate menu GlobalScaler+IRun (5160 spreadsheet model) into the same
+    // RMS target on this 2209 board. Do not program raw IRun — vsense(irun<16)
+    // made low IRun values fall off the 5160 current curve.
+    configured_scaler = config.globalScaler;
+    configured_irun = config.iRun;
+    if (configured_irun > 31) {
+        configured_irun = 31;
     }
-    if (irun < 1) {
-        irun = 1;
+    target_run_ma = tmcMenuCurrentMa(configured_scaler, configured_irun);
+    if (target_run_ma < 50) {
+        target_run_ma = 50;
     }
-
-    // IHOLD_IRUN.irun is the 5-bit current scale (CS, 0-31) from the datasheet.
-    // Same field as TMC5160 irun; TMC2209 has no GLOBAL_SCALER register.
-    motor->irun(irun);
-    motor->ihold(irun / 2);
-    motor->vsense(irun < 16);
+    // holdMultiplier 0.5 keeps prior 2209 ihold≈irun/2 standstill behaviour.
+    motor->rms_current(target_run_ma, 0.5f);
 
     if (config.stealthChop) {
         applyStealthChop(true);
@@ -261,13 +266,19 @@ void TMC2209Driver::printDriveStatus() {
     Serial.println(motor->CRCerror ? F("true") : F("false"));
 
     Serial.println(F("[Current Config]"));
-    Serial.print(F("  irun: "));
+    Serial.print(F("  menu globalScaler: "));
+    Serial.println(configured_scaler);
+    Serial.print(F("  menu irun: "));
+    Serial.println(configured_irun);
+    Serial.print(F("  target RMS mA (5160-equivalent): "));
+    Serial.println(target_run_ma);
+    Serial.print(F("  irun (CS): "));
     Serial.println(motor->irun());
     Serial.print(F("  ihold: "));
     Serial.println(motor->ihold());
     Serial.print(F("  iholddelay: "));
     Serial.println(motor->iholddelay());
-    Serial.print(F("  expected RMS mA (irun): "));
+    Serial.print(F("  expected RMS mA (irun/CS): "));
     Serial.println(motor->cs2rms(motor->irun()));
     printBoolLine(F("  i_scale_analog: "), motor->I_scale_analog());
     printBoolLine(F("  vsense (high sensitivity): "), motor->vsense());
@@ -278,6 +289,11 @@ void TMC2209Driver::printDriveStatus() {
     printBoolLine(F("  stealthChop (configured): "), stealth_chop);
     printBoolLine(F("  spreadCycle enabled: "), motor->en_spreadCycle());
     printBoolLine(F("  pwm_autoscale: "), motor->pwm_autoscale());
+    printBoolLine(F("  pwm_autograd: "), motor->pwm_autograd());
+    Serial.print(F("  pwm_freq: "));
+    Serial.println(motor->pwm_freq());
+    Serial.print(F("  TPWMTHRS: "));
+    Serial.println(motor->TPWMTHRS());
     Serial.print(F("  VACTUAL (commanded): "));
     Serial.println(last_vactual);
 

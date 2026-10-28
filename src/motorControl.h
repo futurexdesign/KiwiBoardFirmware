@@ -89,7 +89,8 @@ class MotorControl : public Executable
             int program;    // 0 = agitate; 1 = spin; 2 = dry
             bool direction; // false = CW ; true = CCW
             int washSteps; // whole steps configured for wash cycle
-            unsigned int stopping_cnt = 0;
+            int accel = 200; // last commanded accel (full steps/s^2)
+            unsigned long stopping_deadline_ms = 0;
 
             int rpm;
             unsigned long run_start;    // when did the program phase start

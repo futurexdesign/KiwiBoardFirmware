@@ -28,10 +28,12 @@ If you are on windows 11 home, you will need to enable gpedit inorder to enable 
 The user interface is coded using tcMenu.   To edit the menu structure, the tcMenu Designer tool should be used.   The kiwiboard.emf file contains the menu definitions. 
 
 ## Calculations for TMC5160 
-See `TMC_calculations.xlsx` spreadsheet for information on current calculations. 
+See `TMC_calculations.xlsx` spreadsheet for information on current calculations.
+- Sense resistor on the TMC5160 board is **0.075 Ω**. GlobalScaler default **148** makes IRun=31 ≈ 1.77 A RMS (motor rated current).
 - GlobalScaler should be set such that IRun = 31 represents the maximum RMS current desired.  This makes 
 sure the full range of iRun represents all available current settings, and we can't accidentally try and send too much current
-to the stepper motor when adjusting iRun. 
+to the stepper motor when adjusting iRun.
+- The TMC2209 board (0.11 Ω sense) converts the same GlobalScaler+IRun menu pair into an equivalent RMS target via `tmcMenuCurrentMa()` / `rms_current()`, so lowering IRun tracks the same amp curve on both platforms.
 
 ## Build targets
 
