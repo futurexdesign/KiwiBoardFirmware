@@ -38,12 +38,28 @@ void TMC2209Driver::applyVelocity(float vmax) {
 
 void TMC2209Driver::applyStealthChop(bool enabled) {
     stealth_chop = enabled;
+
+    // Keep UART current + microstep register select intact across mode flips
+    // (UberKiwi backport — leaving i_scale_analog set causes screech / no motion).
+    motor->I_scale_analog(false);
+    motor->internal_Rsense(false);
+    motor->pdn_disable(true);
+    motor->mstep_reg_select(true);
+    motor->multistep_filt(true);
+
+    // Explicit StealthChop PWM setup (datasheet / Klipper reset-ish defaults).
+    motor->pwm_ofs(36);
+    motor->pwm_grad(14);
+    motor->pwm_freq(1); // 2/683 * fCLK ≈ 35 kHz @ 12 MHz
+    motor->pwm_autoscale(true);
+    motor->pwm_autograd(true);
+    motor->pwm_reg(8);
+    motor->pwm_lim(12);
+
     if (enabled) {
         // Always-StealthChop (TPWMTHRS=0): no Stealth↔Spread handoff jerk on the basket.
         motor->en_spreadCycle(false);
-        motor->pwm_autoscale(true);
-        motor->pwm_autograd(true);
-        motor->pwm_freq(1); // 2/683 * fCLK ≈ 35 kHz @ 12 MHz (matches 5160 defaults)
+        motor->TCOOLTHRS(0);
         motor->TPWMTHRS(0);
     } else {
         motor->en_spreadCycle(true);
@@ -72,14 +88,21 @@ bool TMC2209Driver::init(Platform *curPlatform, const MOTOR_DRIVER_CONFIG &confi
     motor->begin();
     motor->pdn_disable(true);
     motor->mstep_reg_select(true);
-    motor->toff(4);
-    motor->blank_time(24);
+    motor->multistep_filt(true);
+    // Klipper defaults: toff=3, hstrt=5, hend=0, tbl=2. Explicit hysteresis —
+    // omitting hstrt/hend makes SpreadCycle unusable and leaves StealthChop
+    // poorly conditioned after OTP/stealth transitions (UberKiwi backport).
+    motor->toff(3);
+    motor->hstrt(5);
+    motor->hend(0);
+    motor->blank_time(36); // tbl=2
     motor->I_scale_analog(false);
     motor->internal_Rsense(false);
     motor->microsteps(TMC2209_MICROSTEPS);
     motor->semin(0);
     motor->TPOWERDOWN(20);
-    motor->iholddelay(2);
+    // iholddelay=8 matches Klipper; 2 was aggressive for standstill blend.
+    motor->iholddelay(8);
 
     // Translate menu GlobalScaler+IRun (5160 spreadsheet model) into the same
     // RMS target on this 2209 board. Do not program raw IRun — vsense(irun<16)
@@ -286,14 +309,31 @@ void TMC2209Driver::printDriveStatus() {
     Serial.println(motor->microsteps());
     Serial.print(F("  toff: "));
     Serial.println(motor->toff());
+    Serial.print(F("  hstrt: "));
+    Serial.println(motor->hstrt());
+    Serial.print(F("  hend: "));
+    Serial.println(motor->hend());
+    Serial.print(F("  blank_time (tbl clocks): "));
+    Serial.println(motor->blank_time());
     printBoolLine(F("  stealthChop (configured): "), stealth_chop);
     printBoolLine(F("  spreadCycle enabled: "), motor->en_spreadCycle());
+    printBoolLine(F("  multistep_filt: "), motor->multistep_filt());
+    Serial.print(F("  pwm_ofs: "));
+    Serial.println(motor->pwm_ofs());
+    Serial.print(F("  pwm_grad: "));
+    Serial.println(motor->pwm_grad());
     printBoolLine(F("  pwm_autoscale: "), motor->pwm_autoscale());
     printBoolLine(F("  pwm_autograd: "), motor->pwm_autograd());
     Serial.print(F("  pwm_freq: "));
     Serial.println(motor->pwm_freq());
+    Serial.print(F("  pwm_reg: "));
+    Serial.println(motor->pwm_reg());
+    Serial.print(F("  pwm_lim: "));
+    Serial.println(motor->pwm_lim());
     Serial.print(F("  TPWMTHRS: "));
     Serial.println(motor->TPWMTHRS());
+    Serial.print(F("  TCOOLTHRS: "));
+    Serial.println(motor->TCOOLTHRS());
     Serial.print(F("  VACTUAL (commanded): "));
     Serial.println(last_vactual);
 
